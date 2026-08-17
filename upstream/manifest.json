@@ -25,7 +25,7 @@
     "actions/download-artifact": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c"
   },
   "models": {
-    "parity": {"id": "global.anthropic.claude-opus-4-8", "reasoning_effort": "xhigh"},
+    "parity": {"id": "global.anthropic.claude-opus-4-8[1m]", "reasoning_effort": "xhigh"},
     "native_default": {"id": "us.anthropic.claude-sonnet-5", "reasoning_effort": "xhigh"}
   },
   "deviations": [
