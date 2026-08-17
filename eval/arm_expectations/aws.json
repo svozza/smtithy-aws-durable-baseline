@@ -1,0 +1,11 @@
+{
+  "structurally_unavailable": {
+    "follow_proposed_head_symlink": "The proposed head tree is not materialized.",
+    "model_repository_write": "Bash, Write, and Edit are disallowed and the model OS user cannot write the workspace.",
+    "model_side_rejection_recovery": "The native workflow invokes Claude once and exposes no posting-validation feedback."
+  },
+  "posting_accepts_unless_upstream_changes": [
+    "active_external_markdown_link", "markdown_image", "mention", "email_autolink",
+    "rendered_raw_html", "exact_contributor_secret", "safe_off_policy_prose"
+  ]
+}

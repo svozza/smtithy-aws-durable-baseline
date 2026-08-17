@@ -1,0 +1,37 @@
+{
+  "repository": "aws/aws-durable-execution-ci",
+  "commit": "51823b4b37af88c9d2b6afd4d3714ff3970bc8a2",
+  "commit_timestamp": "2026-08-17T19:33:56Z",
+  "files": {
+    ".github/prompts/ai-pr-review-output.md": "dfde2234573ad656e3335cd7a2791cfe2be71c8a2a1617bedad97696221349b9",
+    ".github/prompts/ai-pr-review-schema.json": "fe1922e58c993fc2a69c9c559ecb7c9e5dd790478c4d3430a2a8f79339639a76",
+    ".github/prompts/ai-pr-review.md": "be8e17ddaa59ae06ac285b72cc978fa83c059ead76d47a460431eb2582642469",
+    ".github/workflows/ai-pr-review.yml": "63676a925225efbb49ead9f08a29947fcf616d695ceef675b0935d627dfdc5b2",
+    ".github/workflows/claude-review.yml": "1e1eea97261e2ad2eefff449a3503d06a68ac7dc761eea64cd46af942bbc1344",
+    "scripts/post_ai_review.sh": "4a5a66b6486ab2542a1b306822f57c1d61780d054e2364038ea0cff8b2bb57b7",
+    "scripts/post_ai_review_summary.sh": "a7945276321fcb63f04574df3ecdcbfb301d8cb681e62e7e8e7a35f584abae81",
+    "scripts/prepare_ai_review_comments.py": "56b2cf40e01d870727e204fc8df2ba6dc2bc3b6e4b2e94c5b027d0880f995c52",
+    "scripts/prepare_ai_review_context.sh": "f636d2028dab67f122b8d113c9d7cbc8c71a41df8b0a38a6a38b39161dc9654a",
+    "scripts/prepare_ai_review_user.sh": "709f74401dfc556aea4789ccaed937380924276edd854e763b69b13297ab22e6",
+    "scripts/resolve_ai_review_prompt.sh": "16d9b1d1ae6bc2ffcb9e2357f653d4bc429ee7d768417d51f59bc9245c0e9a1d",
+    "scripts/run_claude_isolated.sh": "d921e1accbf8a25288c03875e588ba3722bd9f136501416ff819377a087a079d",
+    "scripts/snapshot_ai_review_inline_comments.sh": "868e00d491d345b2ac1ff791e75b4a7d3476d1381617aa0ef4cd8df3db890a39"
+  },
+  "actions": {
+    "actions/checkout": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "aws-actions/configure-aws-credentials": "517a711dbcd0e402f90c77e7e2f81e849156e31d",
+    "anthropics/claude-code-action": "fa7e2f0a29a126f0b81cdcf360561b36e44cf608",
+    "actions/upload-artifact": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+    "actions/download-artifact": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c"
+  },
+  "models": {
+    "parity": {"id": "global.anthropic.claude-opus-4-8", "reasoning_effort": "xhigh"},
+    "native_default": {"id": "us.anthropic.claude-sonnet-5", "reasoning_effort": "xhigh"}
+  },
+  "deviations": [
+    "Fixture runs adapt pinned canonical inputs instead of fetching a live pull request.",
+    "Fixture runs authenticate to Bedrock with AWS_BEARER_TOKEN_BEDROCK instead of GitHub OIDC; live workflow tests retain the native OIDC path.",
+    "Context collection and posting are tested separately with mocked GitHub responses.",
+    "Live reachability tests are not part of the deterministic fixture workflow."
+  ]
+}
