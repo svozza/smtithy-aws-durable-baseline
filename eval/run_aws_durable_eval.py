@@ -31,6 +31,27 @@ def extract_review(execution: list[dict]) -> dict:
     return reviews[0]
 
 
+def classify_execution(execution: list[dict]) -> dict:
+    results = [event for event in execution if event.get("type") == "result"]
+    if len(results) != 1:
+        return {"scorable": False, "exclusion": "no_single_result"}
+    result = results[0]
+    if result.get("is_error"):
+        return {
+            "scorable": False,
+            "exclusion": result.get("subtype", "model_error"),
+            "turns": result.get("num_turns"),
+            "cost_usd": result.get("total_cost_usd"),
+        }
+    if "structured_output" not in result:
+        return {"scorable": False, "exclusion": "missing_structured_output"}
+    return {
+        "scorable": True,
+        "turns": result.get("num_turns"),
+        "cost_usd": result.get("total_cost_usd"),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--fixture-source", required=True, type=Path)
@@ -46,7 +67,12 @@ def main() -> int:
     if args.execution_file:
         execution = json.loads(args.execution_file.read_text())
         (args.output_dir / "claude-execution.json").write_bytes(args.execution_file.read_bytes())
-        (args.output_dir / "review.json").write_text(json.dumps(extract_review(execution), indent=2) + "\n")
+        sample = classify_execution(execution)
+        (args.output_dir / "sample.json").write_text(json.dumps(sample, indent=2) + "\n")
+        if sample["scorable"]:
+            (args.output_dir / "review.json").write_text(
+                json.dumps(extract_review(execution), indent=2) + "\n"
+            )
     return 0
 
 

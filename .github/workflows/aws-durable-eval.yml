@@ -27,6 +27,42 @@ on:
         required: true
         default: eu-west-1
         type: string
+      comparison-fixture:
+        description: Comparison-arm fixture name recorded in the artifact
+        required: false
+        default: ""
+        type: string
+      run-index:
+        description: Repetition index
+        required: false
+        default: 1
+        type: number
+  workflow_call:
+    inputs:
+      fixture-source-sha:
+        required: true
+        type: string
+      fixture:
+        required: true
+        type: string
+      model:
+        required: true
+        type: string
+      reasoning-effort:
+        required: true
+        type: string
+      aws-region:
+        required: true
+        type: string
+      comparison-fixture:
+        required: true
+        type: string
+      run-index:
+        required: true
+        type: number
+    secrets:
+      AWS_BEARER_TOKEN_BEDROCK:
+        required: true
 
 permissions: {}
 
@@ -52,12 +88,21 @@ jobs:
         env:
           FIXTURE: ${{ inputs.fixture }}
           FIXTURE_SOURCE_SHA: ${{ inputs['fixture-source-sha'] }}
+          COMPARISON_FIXTURE: ${{ inputs['comparison-fixture'] }}
+          RUN_INDEX: ${{ inputs['run-index'] }}
         run: |
           python3 harness/eval/run_aws_durable_eval.py \
             --fixture-source fixture-source \
             --fixture-source-sha "$FIXTURE_SOURCE_SHA" \
             --fixture "$FIXTURE" \
             --output-dir "$RUNNER_TEMP/eval-record"
+          jq \
+            --arg comparison_fixture "${COMPARISON_FIXTURE:-$FIXTURE}" \
+            --argjson run_index "$RUN_INDEX" \
+            '. + {comparison_fixture: $comparison_fixture, run_index: $run_index}' \
+            "$RUNNER_TEMP/eval-record/run-record.json" \
+            > "$RUNNER_TEMP/eval-record/run-record.tmp"
+          mv "$RUNNER_TEMP/eval-record/run-record.tmp" "$RUNNER_TEMP/eval-record/run-record.json"
           cp -R "$RUNNER_TEMP/eval-record/workspace/." .
           mkdir .ai-review-toolkit
           cp -R harness/upstream/aws-durable-execution-ci/.github harness/upstream/aws-durable-execution-ci/scripts .ai-review-toolkit/
@@ -90,6 +135,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
       - name: Review with pinned native action
         id: review
+        continue-on-error: true
         uses: anthropics/claude-code-action@fa7e2f0a29a126f0b81cdcf360561b36e44cf608
         env:
           AWS_REGION: ${{ inputs['aws-region'] }}
@@ -122,6 +168,7 @@ jobs:
             cp "$EXECUTION_FILE" "$RUNNER_TEMP/action-output/claude-execution.json"
           fi
       - name: Extract and grade
+        if: always()
         env:
           EXECUTION_FILE: ${{ steps.review.outputs.execution_file }}
           FIXTURE: ${{ inputs.fixture }}
@@ -133,15 +180,17 @@ jobs:
             --fixture "$FIXTURE" \
             --output-dir "$RUNNER_TEMP/result" \
             --execution-file "$EXECUTION_FILE"
-          python3 harness/eval/grade_aws_durable_eval.py \
-            --review "$RUNNER_TEMP/result/review.json" \
-            --fixture-source fixture-source \
-            --fixture "$FIXTURE" \
-            --output "$RUNNER_TEMP/result/grade.json"
+          if [[ -f "$RUNNER_TEMP/result/review.json" ]]; then
+            python3 harness/eval/grade_aws_durable_eval.py \
+              --review "$RUNNER_TEMP/result/review.json" \
+              --fixture-source fixture-source \
+              --fixture "$FIXTURE" \
+              --output "$RUNNER_TEMP/result/grade.json"
+          fi
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: aws-durable-eval-${{ github.run_id }}
+          name: aws-durable-eval-${{ github.run_id }}-${{ inputs['comparison-fixture'] || inputs.fixture }}-${{ inputs['run-index'] }}
           path: |
             ${{ runner.temp }}/eval-record/run-record.json
             ${{ runner.temp }}/action-output

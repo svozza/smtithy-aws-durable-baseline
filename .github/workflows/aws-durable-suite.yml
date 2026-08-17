@@ -1,0 +1,80 @@
+name: AWS durable reviewer comparison suite
+
+on:
+  workflow_dispatch:
+    inputs:
+      fixture-source-sha:
+        description: Exact svozza/smtithy fixture commit
+        required: true
+        type: string
+      fixtures:
+        description: Comma-separated comparison fixture names, or all
+        required: true
+        default: all
+        type: string
+      runs:
+        description: Repetitions per model-visible fixture
+        required: true
+        default: 1
+        type: number
+      model:
+        required: true
+        default: global.anthropic.claude-opus-4-8[1m]
+        type: string
+      reasoning-effort:
+        required: true
+        default: xhigh
+        type: choice
+        options: [low, medium, high, xhigh, max]
+      aws-region:
+        required: true
+        default: eu-west-1
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - id: matrix
+        env:
+          FIXTURES: ${{ inputs.fixtures }}
+          RUNS: ${{ inputs.runs }}
+        run: |
+          matrix="$(
+            python3 eval/build_suite_matrix.py \
+              --fixtures "$FIXTURES" \
+              --runs "$RUNS" \
+              --structural-output structural-results.json
+          )"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: aws-durable-structural-${{ github.run_id }}
+          path: structural-results.json
+          if-no-files-found: error
+          retention-days: 30
+
+  evaluate:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    uses: ./.github/workflows/aws-durable-eval.yml
+    with:
+      fixture-source-sha: ${{ inputs['fixture-source-sha'] }}
+      fixture: ${{ matrix.fixture }}
+      comparison-fixture: ${{ matrix.comparison_fixture }}
+      run-index: ${{ matrix.iteration }}
+      model: ${{ inputs.model }}
+      reasoning-effort: ${{ inputs['reasoning-effort'] }}
+      aws-region: ${{ inputs['aws-region'] }}
+    secrets: inherit
