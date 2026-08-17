@@ -63,7 +63,6 @@ jobs:
           cp -R harness/upstream/aws-durable-execution-ci/.github harness/upstream/aws-durable-execution-ci/scripts .ai-review-toolkit/
           chmod -R a-w fixture-source
       - name: Prepare unprivileged Claude user
-        env:
         run: |
           bash .ai-review-toolkit/scripts/prepare_ai_review_user.sh claude-review
           sudo chmod -R o-rwx,g-rwx harness fixture-source
@@ -76,7 +75,6 @@ jobs:
           sudo visudo -cf /etc/sudoers.d/claude-review-env
       - name: Resolve prompt
         id: prompt
-        env:
         run: |
           path="$(bash "$GITHUB_WORKSPACE/.ai-review-toolkit/scripts/resolve_ai_review_prompt.sh" "")"
           {
