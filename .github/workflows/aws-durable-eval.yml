@@ -61,6 +61,11 @@ jobs:
           cp -R "$RUNNER_TEMP/eval-record/workspace/." .
           mkdir .ai-review-toolkit
           cp -R harness/upstream/aws-durable-execution-ci/.github harness/upstream/aws-durable-execution-ci/scripts .ai-review-toolkit/
+          git init
+          git config user.name "AWS durable eval"
+          git config user.email "aws-durable-eval@example.invalid"
+          git add README.md CONTRIBUTING.md
+          git commit -m "fixture trusted base"
           chmod -R a-w fixture-source
       - name: Prepare unprivileged Claude user
         run: |
@@ -97,6 +102,7 @@ jobs:
           path_to_claude_code_executable: ${{ github.workspace }}/.ai-review-toolkit/scripts/run_claude_isolated.sh
           allowed_non_write_users: ${{ github.actor }}
           classify_inline_comments: "false"
+          show_full_output: "true"
           prompt: ${{ steps.prompt.outputs.text }}
           claude_args: >-
             --model ${{ inputs.model }}
@@ -107,6 +113,15 @@ jobs:
             --allowedTools "Read,Grep,Glob"
             --disallowedTools "Bash,Write,Edit,NotebookEdit,WebFetch,WebSearch"
             --json-schema '${{ steps.prompt.outputs.schema }}'
+      - name: Preserve action execution
+        if: always()
+        env:
+          EXECUTION_FILE: ${{ steps.review.outputs.execution_file }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/action-output"
+          if [[ -n "$EXECUTION_FILE" && -r "$EXECUTION_FILE" ]]; then
+            cp "$EXECUTION_FILE" "$RUNNER_TEMP/action-output/claude-execution.json"
+          fi
       - name: Extract and grade
         env:
           EXECUTION_FILE: ${{ steps.review.outputs.execution_file }}
@@ -130,6 +145,7 @@ jobs:
           name: aws-durable-eval-${{ github.run_id }}
           path: |
             ${{ runner.temp }}/eval-record/run-record.json
+            ${{ runner.temp }}/action-output
             ${{ runner.temp }}/result
           if-no-files-found: error
           retention-days: 30
