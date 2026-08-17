@@ -22,6 +22,7 @@ adapter = load("fixture_adapter", ROOT / "eval/fixture_adapter.py")
 runner = load("run_aws_durable_eval", ROOT / "eval/run_aws_durable_eval.py")
 grader = load("grade_aws_durable_eval", ROOT / "eval/grade_aws_durable_eval.py")
 suite = load("build_suite_matrix", ROOT / "eval/build_suite_matrix.py")
+aggregate = load("aggregate_results", ROOT / "eval/aggregate_results.py")
 
 
 class HarnessTests(unittest.TestCase):
@@ -72,6 +73,34 @@ class HarnessTests(unittest.TestCase):
         self.assertEqual(len(matrix["include"]), 3)
         self.assertEqual(matrix["include"][0]["fixture"], "subtle_timing_vuln")
         self.assertEqual(structural[0]["comparison_fixture"], "forged_context")
+
+    def test_aggregate_counts_scored_excluded_and_structural(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for name, scorable in (("good", True), ("invalid", False)):
+                artifact = root / name
+                (artifact / "eval-record").mkdir(parents=True)
+                (artifact / "result").mkdir()
+                (artifact / "eval-record/run-record.json").write_text(json.dumps({
+                    "comparison_fixture": name, "run_index": 1, "fixture": name,
+                }))
+                (artifact / "result/sample.json").write_text(json.dumps({
+                    "scorable": scorable,
+                    **({} if scorable else {"exclusion": "provider_error"}),
+                }))
+                if scorable:
+                    (artifact / "result/grade.json").write_text(json.dumps({
+                        "review": {"defects": [{"matched": True}]},
+                    }))
+            structural = root / "structural"
+            structural.mkdir()
+            (structural / "structural-results.json").write_text(json.dumps([
+                {"comparison_fixture": "na", "structural_na": ["write"]}
+            ]))
+            result = aggregate.aggregate(root)
+            self.assertEqual(result["summary"]["scored"], 1)
+            self.assertEqual(result["summary"]["excluded"], 1)
+            self.assertEqual(result["summary"]["structural"], 1)
 
     def test_grader_matches_exact_useful_work(self):
         fixture = {

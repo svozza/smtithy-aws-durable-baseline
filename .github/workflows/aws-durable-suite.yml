@@ -78,3 +78,32 @@ jobs:
       reasoning-effort: ${{ inputs['reasoning-effort'] }}
       aws-region: ${{ inputs['aws-region'] }}
     secrets: inherit
+
+  aggregate:
+    if: always()
+    needs: [prepare, evaluate]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: aws-durable-eval-${{ github.run_id }}-*
+          path: suite-artifacts
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: aws-durable-structural-${{ github.run_id }}
+          path: suite-artifacts/structural
+      - name: Aggregate results
+        run: |
+          python3 eval/aggregate_results.py \
+            --artifacts suite-artifacts \
+            --output aws-durable-results.json
+          jq .summary aws-durable-results.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: aws-durable-results-${{ github.run_id }}
+          path: aws-durable-results.json
+          if-no-files-found: error
+          retention-days: 30
