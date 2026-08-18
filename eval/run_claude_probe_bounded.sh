@@ -22,10 +22,19 @@ if [[ "$completed_pid" == "$claude_pid" ]]; then
   exit "$first_status"
 fi
 
+echo "::warning::Trusted probe timed out after ${deadline}s; terminating model processes."
+sudo ps -eo pid,ppid,pgid,user,stat,comm --forest >&2
+set +e
 sudo kill -TERM -- "-$claude_pid" 2>/dev/null || true
-sudo pkill -TERM -u claude-review 2>/dev/null || true
+sudo pkill -TERM -u claude-review 2>/dev/null
+term_status=$?
+echo "::warning::claude-review TERM status: $term_status"
 sleep "$grace"
 sudo kill -KILL -- "-$claude_pid" 2>/dev/null || true
-sudo pkill -KILL -u claude-review 2>/dev/null || true
+sudo pkill -KILL -u claude-review 2>/dev/null
+kill_status=$?
+echo "::warning::claude-review KILL status: $kill_status"
+sudo ps -eo pid,ppid,pgid,user,stat,comm --forest >&2
 wait "$claude_pid" 2>/dev/null || true
+set -e
 exit 124
