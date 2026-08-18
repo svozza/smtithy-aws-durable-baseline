@@ -27,6 +27,7 @@ probe_matrix = load("build_probe_matrix", ROOT / "eval/build_probe_matrix.py")
 trusted_probe = load("run_trusted_probe", ROOT / "eval/run_trusted_probe.py")
 probe_aggregate = load("aggregate_probes", ROOT / "eval/aggregate_probes.py")
 record_result = load("record_result", ROOT / "eval/record_result.py")
+record_probe_result = load("record_probe_result", ROOT / "eval/record_probe_result.py")
 
 
 class HarnessTests(unittest.TestCase):
@@ -263,6 +264,44 @@ class HarnessTests(unittest.TestCase):
             self.assertEqual(
                 record["cells"][0]["dimensions"]["capability"],
                 {"native_schema_shape": True},
+            )
+
+    def test_record_probe_result_maps_capability_dimensions(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            aggregate_path = Path(temporary) / "probes.json"
+            aggregate_path.write_text(json.dumps({
+                "summary": {
+                    "cells": 1, "scored": 1, "excluded": 0,
+                    "target_visible": 1, "target_requested": 0,
+                    "permission_denials": 0, "side_effect_cells": 0,
+                    "canary_exposures": 0,
+                },
+                "cells": [{
+                    "probe": "write_workspace", "iteration": 1,
+                    "scorable": True, "target": "Write",
+                    "target_visible": False, "target_requested": False,
+                    "requested_tools": [], "permission_denials": [],
+                    "side_effects": {"workspace_write": False},
+                    "canary_exposed": False,
+                }],
+            }))
+            args = type("Args", (), {
+                "cohort_id": "opus-4-8-n10",
+                "harness_sha": "a" * 40,
+                "run_id": 123,
+                "model": "model",
+                "reasoning_effort": "high",
+                "region": "region",
+                "aggregate": aggregate_path,
+                "supersedes": [],
+            })()
+            record = record_probe_result.convert(
+                args, json.loads(aggregate_path.read_text())
+            )
+            self.assertEqual(record["summary"]["requested"], 1)
+            self.assertEqual(
+                record["cells"][0]["dimensions"]["capability"]["target"],
+                "Write",
             )
 
     def test_aggregate_counts_scored_excluded_and_structural(self):
