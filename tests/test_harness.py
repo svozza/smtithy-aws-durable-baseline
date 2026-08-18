@@ -23,6 +23,8 @@ runner = load("run_aws_durable_eval", ROOT / "eval/run_aws_durable_eval.py")
 grader = load("grade_aws_durable_eval", ROOT / "eval/grade_aws_durable_eval.py")
 suite = load("build_suite_matrix", ROOT / "eval/build_suite_matrix.py")
 aggregate = load("aggregate_results", ROOT / "eval/aggregate_results.py")
+probe_matrix = load("build_probe_matrix", ROOT / "eval/build_probe_matrix.py")
+trusted_probe = load("run_trusted_probe", ROOT / "eval/run_trusted_probe.py")
 
 
 class HarnessTests(unittest.TestCase):
@@ -42,6 +44,49 @@ class HarnessTests(unittest.TestCase):
                 (output / ".ai-review-context/pr.diff").read_bytes(),
             )
             self.assertEqual(record["fixture_source_sha"], "a" * 40)
+
+    def test_adapter_materializes_only_pinned_declared_base_paths(self):
+        source = ROOT.parent / "smtithy-aws-fixtures"
+        if not source.exists():
+            self.skipTest("sibling fixture source is unavailable")
+
+        class Response:
+            def __init__(self, content):
+                self.content = content
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read(self):
+                return self.content
+
+        requested = []
+
+        def opener(url):
+            requested.append(url)
+            return Response(f"pinned:{url.rsplit('/', 1)[-1]}".encode())
+
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "fixture"
+            record = adapter.adapt(
+                source,
+                "caller_impact_needs_investigation",
+                output,
+                "a" * 40,
+                opener=opener,
+            )
+            self.assertEqual(len(requested), 2)
+            self.assertTrue(all(
+                "51473090c5fd25d79c80446cf635f49a4355006c" in url
+                for url in requested
+            ))
+            self.assertEqual(set(record["base_hashes"]), {
+                "aws_lambda_powertools/shared/functions.py",
+                "aws_lambda_powertools/utilities/parameters/ssm.py",
+            })
 
     def test_extract_requires_exactly_one_native_result(self):
         review = {"summary": "No findings.", "comments": []}
@@ -65,7 +110,7 @@ class HarnessTests(unittest.TestCase):
     def test_comparison_matrix_matches_naive_fixture_names(self):
         matrix = json.loads((ROOT / "eval/comparison_matrix.json").read_text())
         names = [item["comparison_name"] for item in matrix["fixtures"]]
-        self.assertEqual(len(names), 26)
+        self.assertEqual(len(names), 34)
         self.assertEqual(len(names), len(set(names)))
         model_runs = {
             item["comparison_name"]: item["comparison_n"]
@@ -93,23 +138,57 @@ class HarnessTests(unittest.TestCase):
         })
 
     def test_matched_cohorts_fit_github_matrix_limit_without_lowering_n(self):
-        core, core_structural = suite.build("matched-core", 0)
+        prompt, prompt_structural = suite.build("matched-prompt", 0)
+        architecture, architecture_structural = suite.build("matched-architecture", 0)
         tools, tool_structural = suite.build("matched-tools", 0)
-        self.assertEqual(len(core["include"]), 240)
+        self.assertEqual(len(prompt["include"]), 240)
+        self.assertEqual(len(architecture["include"]), 36)
         self.assertEqual(len(tools["include"]), 100)
-        self.assertEqual(len(core_structural), 1)
+        self.assertEqual(prompt_structural, [])
+        self.assertEqual(len(architecture_structural), 1)
         self.assertEqual(tool_structural, [])
-        self.assertLessEqual(len(core["include"]), suite.MAX_MATRIX_JOBS)
+        self.assertLessEqual(len(prompt["include"]), suite.MAX_MATRIX_JOBS)
+        self.assertLessEqual(len(architecture["include"]), suite.MAX_MATRIX_JOBS)
         self.assertLessEqual(len(tools["include"]), suite.MAX_MATRIX_JOBS)
 
     def test_all_matched_schedule_refuses_unrunnable_340_job_matrix(self):
-        with self.assertRaisesRegex(ValueError, "matched-core and matched-tools"):
+        with self.assertRaisesRegex(ValueError, "matched-prompt"):
             suite.build("all", 0)
 
     def test_suite_skips_model_job_for_structural_only_selection(self):
         workflow = (ROOT / ".github/workflows/aws-durable-suite.yml").read_text()
         self.assertIn("model-count: ${{ steps.matrix.outputs.model-count }}", workflow)
         self.assertIn("if: needs.prepare.outputs.model-count != '0'", workflow)
+
+    def test_trusted_probe_matrix_uses_matched_n10(self):
+        matrix = probe_matrix.build("write_workspace,agent_task", 0)
+        self.assertEqual(len(matrix["include"]), 20)
+
+    def test_trusted_probe_grades_observed_inventory_and_side_effects(self):
+        execution = [
+            {
+                "type": "system",
+                "tools": ["Read"],
+                "agents": ["general-purpose"],
+                "skills": ["simplify"],
+                "slash_commands": ["workflow-launch-exec"],
+                "claude_code_version": "2.1.217",
+                "model": "probe-model",
+            },
+            {
+                "type": "assistant",
+                "message": {"content": [{
+                    "type": "tool_use", "name": "Read", "input": {"file_path": "x"}
+                }]},
+            },
+            {"type": "result", "subtype": "success", "is_error": False},
+        ]
+        result = trusted_probe.grade(
+            "agent_task", execution, {"workspace_write": False}
+        )
+        self.assertTrue(result["target_visible"])
+        self.assertFalse(result["target_requested"])
+        self.assertFalse(result["canary_exposed"])
 
     def test_aggregate_counts_scored_excluded_and_structural(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -16,10 +16,15 @@ def build(fixtures: str, runs: int) -> tuple[dict, list[dict]]:
     manifest = json.loads((ROOT / "eval/comparison_matrix.json").read_text())
     if fixtures == "all":
         requested = None
-    elif fixtures == "matched-core":
+    elif fixtures == "matched-prompt":
         requested = {
             item["comparison_name"] for item in manifest["fixtures"]
-            if not item["comparison_name"].startswith("tool_injection_")
+            if item.get("comparison_n") == 15
+        }
+    elif fixtures == "matched-architecture":
+        requested = {
+            item["comparison_name"] for item in manifest["fixtures"]
+            if item["mode"] == "structural" or item.get("comparison_n") == 3
         }
     elif fixtures == "matched-tools":
         requested = {
@@ -50,8 +55,9 @@ def build(fixtures: str, runs: int) -> tuple[dict, list[dict]]:
     if len(include) > MAX_MATRIX_JOBS:
         raise ValueError(
             f"suite expands to {len(include)} model jobs, above GitHub's "
-            f"{MAX_MATRIX_JOBS}-job matrix limit; dispatch matched-core and "
-            "matched-tools separately, or use a positive --runs override"
+            f"{MAX_MATRIX_JOBS}-job matrix limit; dispatch matched-prompt, "
+            "matched-architecture, and matched-tools separately, or use a "
+            "positive --runs override"
         )
     structural = [
         {

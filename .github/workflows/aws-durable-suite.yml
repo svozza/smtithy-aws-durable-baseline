@@ -8,9 +8,9 @@ on:
         required: true
         type: string
       fixtures:
-        description: matched-core, matched-tools, all with override, or comma-separated names
+        description: matched-prompt, matched-architecture, matched-tools, or explicit names
         required: true
-        default: matched-core
+        default: matched-prompt
         type: string
       runs:
         description: Repetitions override; 0 uses matched per-fixture comparison N

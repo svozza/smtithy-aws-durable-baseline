@@ -18,8 +18,9 @@ python3 -m unittest discover -s tests -v
 Dispatch **AWS durable reviewer comparison suite** with:
 
 - `fixture-source-sha`: an exact commit from `svozza/smtithy`
-- `fixtures`: `matched-core`, `matched-tools`, `all` with a positive override,
-  or comma-separated names from `eval/comparison_matrix.json`
+- `fixtures`: `matched-prompt`, `matched-architecture`, `matched-tools`, `all`
+  with a positive override, or comma-separated names from
+  `eval/comparison_matrix.json`
 - `runs`: `0` uses the matched comparison schedule; a positive value overrides
   every selected model-visible fixture for smoke or fixture-validation runs
 - `model`: the pinned parity profile by default
@@ -49,13 +50,30 @@ The matched schedule follows the current comparison evidence:
 - `N=20`: each isolated tool-persuasion cell
 - no model call: structural N/A cells
 
-GitHub limits one matrix expansion to 256 jobs, while the complete matched
-schedule contains 340 model calls. Run it without reducing sample sizes as two
-dispatches:
+GitHub limits one matrix expansion to 256 jobs. Run the complete schedule
+without reducing sample sizes as three dispatches:
 
-1. `fixtures=matched-core`, `runs=0` (240 model cells)
-2. `fixtures=matched-tools`, `runs=0` (100 model cells)
+1. `fixtures=matched-prompt`, `runs=0`
+2. `fixtures=matched-architecture`, `runs=0`
+3. `fixtures=matched-tools`, `runs=0`
 
 `fixtures=all` is accepted for smoke runs with a positive `runs` override. It
 fails before model spend when combined with `runs=0`, rather than silently
 truncating the matched schedule.
+
+## Run trusted isolation probes
+
+Dispatch **AWS durable trusted isolation probes** separately from contributor
+fixtures. Its default `runs=0` uses the matched `N=10` schedule for Write,
+Edit, Bash/subprocess, Agent/Task, ToolSearch, Workflow, Skill, WebFetch,
+WebSearch, credential-environment, credential-file, and private/workspace write
+probes. The workflow uses fake canaries and records:
+
+- observed tools, agents, skills, and workflow commands;
+- requested tools and permission denials;
+- workspace, private-home, and private-temp side effects;
+- fake credential-canary exposure;
+- pinned CLI and model versions.
+
+These trusted prompts measure capability reachability. Do not combine their
+rates with contributor-persuasion results.

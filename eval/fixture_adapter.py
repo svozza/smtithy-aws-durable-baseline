@@ -4,11 +4,17 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
+import urllib.request
 from pathlib import Path
 
 
 class FixtureError(ValueError):
     pass
+
+
+SHA_RE = re.compile(r"[0-9a-f]{40}")
+REPO_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9._-]+")
 
 
 def digest(path: Path) -> str:
@@ -24,7 +30,53 @@ def load_export(source: Path, name: str) -> tuple[dict, Path]:
     return matches[0], source / manifest["scenario_root"] / name
 
 
-def adapt(source: Path, name: str, output: Path, source_sha: str) -> dict:
+def materialize_base(
+    scenario: Path,
+    declaration_path: str,
+    output: Path,
+    opener=urllib.request.urlopen,
+) -> dict[str, str]:
+    declaration = json.loads((scenario / declaration_path).read_text())
+    repo = declaration.get("repo")
+    sha = declaration.get("sha")
+    paths = declaration.get("paths")
+    if not isinstance(repo, str) or not REPO_RE.fullmatch(repo):
+        raise FixtureError(f"invalid base repository: {repo!r}")
+    if not isinstance(sha, str) or not SHA_RE.fullmatch(sha):
+        raise FixtureError(f"base SHA must be an exact 40-character commit: {sha!r}")
+    if not isinstance(paths, list) or not paths:
+        raise FixtureError("base paths must be a non-empty array")
+
+    hashes = {}
+    for relative in paths:
+        path = Path(relative)
+        if (
+            not isinstance(relative, str)
+            or path.is_absolute()
+            or ".." in path.parts
+            or relative.startswith(".ai-review-")
+        ):
+            raise FixtureError(f"unsafe base path: {relative!r}")
+        url = f"https://raw.githubusercontent.com/{repo}/{sha}/{relative}"
+        try:
+            with opener(url) as response:
+                content = response.read()
+        except Exception as exc:
+            raise FixtureError(f"cannot fetch pinned base file {relative}: {exc}") from exc
+        target = output / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(content)
+        hashes[relative] = hashlib.sha256(content).hexdigest()
+    return hashes
+
+
+def adapt(
+    source: Path,
+    name: str,
+    output: Path,
+    source_sha: str,
+    opener=urllib.request.urlopen,
+) -> dict:
     fixture, scenario = load_export(source, name)
     pr_source = scenario / fixture["pr_metadata"]
     diff_source = scenario / fixture["diff"]
@@ -51,10 +103,11 @@ def adapt(source: Path, name: str, output: Path, source_sha: str) -> dict:
     }
     (context / "pr.json").write_text(json.dumps(native_pr, ensure_ascii=False, indent=2) + "\n")
 
-    base = fixture["base"]
-    if base:
-        declaration = json.loads((scenario / base).read_text())
-        raise FixtureError(f"{name}: remote base materialization is not supported: {declaration['repo']}")
+    base_hashes = {}
+    if fixture["base"]:
+        base_hashes = materialize_base(
+            scenario, fixture["base"], output, opener=opener
+        )
 
     record = {
         "fixture": name,
@@ -67,6 +120,7 @@ def adapt(source: Path, name: str, output: Path, source_sha: str) -> dict:
             ".ai-review-context/pr.diff": digest(context / "pr.diff"),
             ".ai-review-context/pr.json": digest(context / "pr.json"),
         },
+        "base_hashes": base_hashes,
         "reviewed_paths": fixture["reviewed_paths"],
     }
     (output / "fixture-record.json").write_text(json.dumps(record, indent=2) + "\n")

@@ -27,6 +27,14 @@
     {"comparison_name":"tool_injection_agent","source_fixture":"tool_persuasion_agent","mode":"model","comparison_n":20},
     {"comparison_name":"tool_injection_toolsearch","source_fixture":"tool_persuasion_toolsearch","mode":"model","comparison_n":20},
     {"comparison_name":"tool_injection_workflow","source_fixture":"tool_persuasion_workflow","mode":"model","comparison_n":20},
-    {"comparison_name":"tool_injection_skill","source_fixture":"tool_persuasion_skill","mode":"model","comparison_n":20}
+    {"comparison_name":"tool_injection_skill","source_fixture":"tool_persuasion_skill","mode":"model","comparison_n":20},
+    {"comparison_name":"clean_helper_with_tests","source_fixture":"clean_helper_with_tests","mode":"model","comparison_n":3},
+    {"comparison_name":"cap_saturation_body","source_fixture":"cap_saturation_body","mode":"model","comparison_n":3},
+    {"comparison_name":"clean_tool_persuasion_no_findings","source_fixture":"clean_tool_persuasion_no_findings","mode":"model","comparison_n":3},
+    {"comparison_name":"clean_unsafe_output_no_findings","source_fixture":"clean_unsafe_output_no_findings","mode":"model","comparison_n":3},
+    {"comparison_name":"stacked_injection_all_vectors","source_fixture":"stacked_injection_all_vectors","mode":"model","comparison_n":3},
+    {"comparison_name":"long_context_stacked_injection","source_fixture":"long_context_stacked_injection","mode":"model","comparison_n":3},
+    {"comparison_name":"fake_signoff_injection","source_fixture":"fake_signoff_injection","mode":"model","comparison_n":15},
+    {"comparison_name":"caller_impact_needs_investigation","source_fixture":"caller_impact_needs_investigation","mode":"model","comparison_n":3}
   ]
 }
