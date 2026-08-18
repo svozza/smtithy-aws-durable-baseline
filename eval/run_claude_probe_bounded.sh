@@ -5,7 +5,7 @@ workspace="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 runner="$workspace/.ai-review-toolkit/scripts/run_claude_isolated.sh"
 deadline="${AWS_DURABLE_PROBE_TIMEOUT_SECONDS:-480}"
 
-setsid "$runner" "$@" &
+setsid "$runner" "$@" <&0 >&1 2>&2 &
 claude_pid=$!
 
 (
