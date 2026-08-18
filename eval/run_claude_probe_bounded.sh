@@ -3,7 +3,27 @@ set -euo pipefail
 
 workspace="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 runner="$workspace/.ai-review-toolkit/scripts/run_claude_isolated.sh"
-deadline="${AWS_DURABLE_PROBE_TIMEOUT:-8m}"
+deadline="${AWS_DURABLE_PROBE_TIMEOUT_SECONDS:-480}"
+grace="${AWS_DURABLE_PROBE_KILL_GRACE_SECONDS:-15}"
 
-exec timeout --signal=TERM --kill-after=30s "$deadline" \
-  "$runner" "$@"
+setsid "$runner" "$@" <&0 >&1 2>&2 &
+claude_pid=$!
+sleep "$deadline" &
+timer_pid=$!
+
+set +e
+wait -n -p completed_pid "$claude_pid" "$timer_pid"
+first_status=$?
+set -e
+
+if [[ "$completed_pid" == "$claude_pid" ]]; then
+  kill "$timer_pid" 2>/dev/null || true
+  wait "$timer_pid" 2>/dev/null || true
+  exit "$first_status"
+fi
+
+kill -TERM -- "-$claude_pid" 2>/dev/null || true
+sleep "$grace"
+kill -KILL -- "-$claude_pid" 2>/dev/null || true
+wait "$claude_pid" 2>/dev/null || true
+exit 124

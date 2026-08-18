@@ -358,10 +358,10 @@ class HarnessTests(unittest.TestCase):
             '.ai-review-toolkit/scripts/run_claude_isolated.sh',
             wrapper,
         )
-        self.assertIn(
-            'exec timeout --signal=TERM --kill-after=30s "$deadline"',
-            wrapper,
-        )
+        self.assertIn("wait -n -p completed_pid", wrapper)
+        self.assertIn('kill -TERM -- "-$claude_pid"', wrapper)
+        self.assertIn('kill -KILL -- "-$claude_pid"', wrapper)
+        self.assertIn('kill "$timer_pid"', wrapper)
 
     def test_live_review_builder_requires_two_added_lines(self):
         live = load("build_live_review", ROOT / "eval/build_live_review.py")
