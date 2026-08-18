@@ -1,0 +1,192 @@
+name: AWS durable live reachability
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions: {}
+
+concurrency:
+  group: aws-durable-live-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  approve:
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' ||
+      github.event.pull_request.draft ||
+      github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    environment: ai-pr-review
+    permissions: {}
+    steps:
+      - run: echo "approved ${{ github.event.pull_request.head.sha }}"
+
+  generate:
+    needs: approve
+    if: >-
+      always() &&
+      (
+        (
+          github.event.pull_request.user.login != 'dependabot[bot]' &&
+          !github.event.pull_request.draft &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        ) ||
+        needs.approve.result == 'success'
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      mode: ${{ steps.mode.outputs.mode }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted-base
+          persist-credentials: false
+      - name: Assert trusted base checkout
+        run: |
+          test "$(git -C trusted-base rev-parse HEAD)" = "${{ github.event.pull_request.base.sha }}"
+          test "$(git -C trusted-base rev-parse HEAD)" != "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - id: mode
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          mode=normal
+          [[ "$TITLE" == "[stale-head]"* ]] && mode=stale
+          [[ "$TITLE" == "[partial-failure]"* ]] && mode=partial
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+      - name: Build trusted artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh api --paginate \
+            "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100" \
+            | jq -s 'add' > pr-files.json
+          python3 eval/build_live_review.py \
+            --files pr-files.json \
+            --output review.json
+          jq -n \
+            --arg mode "${{ steps.mode.outputs.mode }}" \
+            --arg base "${{ github.event.pull_request.base.sha }}" \
+            --arg head "${{ github.event.pull_request.head.sha }}" \
+            '{mode:$mode,base_sha:$base,head_sha:$head}' \
+            > generation-record.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: aws-durable-live-${{ github.run_id }}
+          path: |
+            review.json
+            generation-record.json
+          if-no-files-found: error
+          retention-days: 30
+
+  post:
+    needs: generate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: aws-durable-live-${{ github.run_id }}
+          path: live-artifact
+      - name: Configure partial-failure wrapper
+        if: needs.generate.outputs.mode == 'partial'
+        run: |
+          mkdir live-bin
+          cp eval/live-gh-wrapper live-bin/gh
+          chmod +x live-bin/gh
+          echo "$GITHUB_WORKSPACE/live-bin" >> "$GITHUB_PATH"
+      - name: Post trusted review
+        id: publish
+        continue-on-error: true
+        env:
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EXPECTED_HEAD_SHA: ${{ needs.generate.outputs.mode == 'stale' && '0000000000000000000000000000000000000000' || github.event.pull_request.head.sha }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REVIEW_FILE: ${{ github.workspace }}/live-artifact/review.json
+          LIVE_GH_STATE: ${{ runner.temp }}/live-gh-count
+          LIVE_GH_IDS: ${{ runner.temp }}/live-gh-ids
+        run: |
+          bash upstream/aws-durable-execution-ci/scripts/post_ai_review.sh \
+            claude \
+            "$EXPECTED_BASE_SHA" \
+            "$EXPECTED_HEAD_SHA" \
+            "$REVIEW_FILE"
+      - name: Verify live outcome
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODE: ${{ needs.generate.outputs.mode }}
+          OUTCOME: ${{ steps.publish.outcome }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          LIVE_GH_IDS: ${{ runner.temp }}/live-gh-ids
+        run: |
+          case "$MODE" in
+            normal)
+              test "$OUTCOME" = success
+              inline="$(
+                gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/comments" \
+                  --jq "[.[] | select(.body | contains(\"ai-pr-review-inline-claude-${GITHUB_RUN_ID}\"))] | length"
+              )"
+              test "$inline" -eq 2
+              bound="$(
+                gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/comments" \
+                  --jq "[.[] | select(.body | contains(\"ai-pr-review-inline-claude-${GITHUB_RUN_ID}\")) | select(.commit_id == \"${HEAD_SHA}\")] | length"
+              )"
+              test "$bound" -eq 2
+              summaries="$(
+                gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+                  --jq '[.[] | select(.body | startswith("<!-- ai-pr-review:claude -->"))] | length'
+              )"
+              test "$summaries" -eq 1
+              ;;
+            stale)
+              test "$OUTCOME" = failure
+              stale_inline="$(
+                gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/comments" \
+                  --jq "[.[] | select(.body | contains(\"ai-pr-review-inline-claude-${GITHUB_RUN_ID}\"))] | length"
+              )"
+              test "$stale_inline" -eq 0
+              ;;
+            partial)
+              test "$OUTCOME" = failure
+              first_id="$(head -1 "$LIVE_GH_IDS")"
+              minimized="$(
+                gh api graphql \
+                  -F id="$first_id" \
+                  -f query='query($id: ID!) { node(id: $id) { ... on PullRequestReviewComment { isMinimized } } }' \
+                  --jq .data.node.isMinimized
+              )"
+              test "$minimized" = true
+              partial_summaries="$(
+                gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+                  --jq '[.[] | select(.body | startswith("<!-- ai-pr-review:claude -->"))] | length'
+              )"
+              test "$partial_summaries" -eq 0
+              ;;
+          esac
+          jq -n \
+            --arg mode "$MODE" \
+            --arg outcome "$OUTCOME" \
+            --arg head "$HEAD_SHA" \
+            '{mode:$mode,publication_outcome:$outcome,head_sha:$head,verified:true}' \
+            > live-result.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: aws-durable-live-result-${{ github.run_id }}
+          path: live-result.json
+          if-no-files-found: error
+          retention-days: 30

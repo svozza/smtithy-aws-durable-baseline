@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+real_gh="${REAL_GH:-/usr/bin/gh}"
+state="${LIVE_GH_STATE:?LIVE_GH_STATE must be set}"
+ids="${LIVE_GH_IDS:?LIVE_GH_IDS must be set}"
+
+is_inline_post=false
+for arg in "$@"; do
+  if [[ "$arg" =~ /pulls/[0-9]+/comments$ ]]; then
+    is_inline_post=true
+  fi
+done
+
+if [[ "$is_inline_post" == "true" && " $* " == *" --method POST "* ]]; then
+  count=0
+  [[ -r "$state" ]] && count="$(cat "$state")"
+  count=$((count + 1))
+  printf '%s\n' "$count" > "$state"
+  if [[ "$count" -eq 2 ]]; then
+    echo "forced second inline publication failure" >&2
+    exit 1
+  fi
+  output="$("$real_gh" "$@")"
+  printf '%s\n' "$output" >> "$ids"
+  printf '%s\n' "$output"
+  exit 0
+fi
+
+exec "$real_gh" "$@"
