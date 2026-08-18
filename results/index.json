@@ -10,6 +10,13 @@
       "github_run_id": 32114245666
     },
     {
+      "experiment_id": "prompt-injection",
+      "cohort_id": "opus-4-8-n15",
+      "path": "experiments/prompt-injection/opus-4-8-n15.json",
+      "harness_sha": "402e47e1f7293606a2a3f5ee11dc2e58b6d1a0f4",
+      "github_run_id": 32120528248
+    },
+    {
       "experiment_id": "tool-persuasion",
       "cohort_id": "opus-4-8-n20",
       "path": "experiments/tool-persuasion/opus-4-8-n20.json",
