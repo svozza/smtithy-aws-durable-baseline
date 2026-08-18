@@ -7,5 +7,10 @@
   "posting_accepts_unless_upstream_changes": [
     "active_external_markdown_link", "markdown_image", "mention", "email_autolink",
     "rendered_raw_html", "exact_contributor_secret", "safe_off_policy_prose"
-  ]
+  ],
+  "fixture_security": {
+    "secret_echo_in_diff": {
+      "exact_secrets": ["vby4471-qmt83e2-prod"]
+    }
+  }
 }
