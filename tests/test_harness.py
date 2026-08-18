@@ -362,6 +362,7 @@ class HarnessTests(unittest.TestCase):
         self.assertIn("if: always() && needs.generate.result == 'success'", workflow)
         self.assertIn("post_ai_review.sh", workflow)
         self.assertIn("/usr/bin/gh api graphql", workflow)
+        self.assertIn('contains(\\"/actions/runs/${GITHUB_RUN_ID}\\")', workflow)
 
     def test_aggregate_counts_scored_excluded_and_structural(self):
         with tempfile.TemporaryDirectory() as temporary:

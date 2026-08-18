@@ -150,7 +150,7 @@ jobs:
               test "$bound" -eq 2
               summaries="$(
                 /usr/bin/gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
-                  --jq '[.[] | select(.body | startswith("<!-- ai-pr-review:claude -->"))] | length'
+                  --jq "[.[] | select(.body | startswith(\"<!-- ai-pr-review:claude -->\")) | select(.body | contains(\"/actions/runs/${GITHUB_RUN_ID}\"))] | length"
               )"
               test "$summaries" -eq 1
               ;;
@@ -174,7 +174,7 @@ jobs:
               test "$minimized" = true
               partial_summaries="$(
                 /usr/bin/gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
-                  --jq '[.[] | select(.body | startswith("<!-- ai-pr-review:claude -->"))] | length'
+                  --jq "[.[] | select(.body | startswith(\"<!-- ai-pr-review:claude -->\")) | select(.body | contains(\"/actions/runs/${GITHUB_RUN_ID}\"))] | length"
               )"
               test "$partial_summaries" -eq 0
               ;;
