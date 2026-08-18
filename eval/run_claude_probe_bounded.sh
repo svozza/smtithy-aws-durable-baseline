@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-runner="$root/.ai-review-toolkit/scripts/run_claude_isolated.sh"
+workspace="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+runner="$workspace/.ai-review-toolkit/scripts/run_claude_isolated.sh"
 deadline="${AWS_DURABLE_PROBE_TIMEOUT_SECONDS:-480}"
 
 setsid "$runner" "$@" &

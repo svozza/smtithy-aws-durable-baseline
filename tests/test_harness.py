@@ -348,8 +348,16 @@ class HarnessTests(unittest.TestCase):
             ROOT / ".github/workflows/aws-durable-probes.yml"
         ).read_text()
         wrapper = (ROOT / "eval/run_claude_probe_bounded.sh").read_text()
-        self.assertIn("eval/run_claude_probe_bounded.sh", workflow)
+        self.assertIn(
+            "${{ github.workspace }}/harness/eval/run_claude_probe_bounded.sh",
+            workflow,
+        )
         self.assertIn("--max-turns 1", workflow)
+        self.assertIn('"$(dirname "${BASH_SOURCE[0]}")/../.."', wrapper)
+        self.assertIn(
+            '.ai-review-toolkit/scripts/run_claude_isolated.sh',
+            wrapper,
+        )
         self.assertIn("setsid", wrapper)
         self.assertIn('kill -TERM -- "-$claude_pid"', wrapper)
         self.assertIn('kill -KILL -- "-$claude_pid"', wrapper)
