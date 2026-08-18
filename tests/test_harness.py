@@ -342,6 +342,25 @@ class HarnessTests(unittest.TestCase):
                 "Write",
             )
 
+    def test_live_review_builder_requires_two_added_lines(self):
+        live = load("build_live_review", ROOT / "eval/build_live_review.py")
+        review = live.build([{
+            "filename": "probe.txt",
+            "patch": "@@ -0,0 +1,2 @@\n+one\n+two",
+        }])
+        self.assertEqual(len(review["comments"]), 2)
+        self.assertEqual({comment["line"] for comment in review["comments"]}, {1, 2})
+
+    def test_live_workflow_uses_pull_request_target_and_separate_write_job(self):
+        workflow = (
+            ROOT / ".github/workflows/aws-durable-live-reachability.yml"
+        ).read_text()
+        self.assertIn("pull_request_target:", workflow)
+        self.assertIn("pull-requests: read", workflow)
+        self.assertIn("pull-requests: write", workflow)
+        self.assertIn("needs: generate", workflow)
+        self.assertIn("post_ai_review.sh", workflow)
+
     def test_aggregate_counts_scored_excluded_and_structural(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
