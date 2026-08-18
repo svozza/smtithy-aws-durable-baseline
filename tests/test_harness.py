@@ -359,8 +359,8 @@ class HarnessTests(unittest.TestCase):
             wrapper,
         )
         self.assertIn("wait -n -p completed_pid", wrapper)
-        self.assertIn('kill -TERM -- "-$claude_pid"', wrapper)
-        self.assertIn('kill -KILL -- "-$claude_pid"', wrapper)
+        self.assertIn('sudo kill -TERM -- "-$claude_pid"', wrapper)
+        self.assertIn('sudo kill -KILL -- "-$claude_pid"', wrapper)
         self.assertIn('kill "$timer_pid"', wrapper)
 
     def test_live_review_builder_requires_two_added_lines(self):
