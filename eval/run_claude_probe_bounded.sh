@@ -22,8 +22,8 @@ if [[ "$completed_pid" == "$claude_pid" ]]; then
   exit "$first_status"
 fi
 
-kill -TERM -- "-$claude_pid" 2>/dev/null || true
+sudo kill -TERM -- "-$claude_pid" 2>/dev/null || true
 sleep "$grace"
-kill -KILL -- "-$claude_pid" 2>/dev/null || true
+sudo kill -KILL -- "-$claude_pid" 2>/dev/null || true
 wait "$claude_pid" 2>/dev/null || true
 exit 124
