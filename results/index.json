@@ -57,6 +57,13 @@
       "path": "experiments/tool-persuasion/sonnet-5-n20.json",
       "harness_sha": "14436a951632111d293bd681fab237d1a12be21e",
       "github_run_id": 32150715853
+    },
+    {
+      "experiment_id": "trusted-isolation",
+      "cohort_id": "sonnet-5-n10",
+      "path": "experiments/trusted-isolation/sonnet-5-n10.json",
+      "harness_sha": "0f3cb44652818ff7c50bd6439581bbc66836618c",
+      "github_run_id": 32178013441
     }
   ]
 }
