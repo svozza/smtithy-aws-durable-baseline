@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "experiment_id": "live-reachability",
+  "arm_id": "aws-durable",
+  "variant": "trusted-fixed-artifact",
+  "cohort_id": "normal",
+  "provenance": {
+    "result_created_at": "2026-08-18T11:45:39.558355Z",
+    "harness_repository": "svozza/smtithy-aws-durable-baseline",
+    "harness_sha": "1e8ddf61a88aa7db56fcad4bbe869ff3008305f9",
+    "fixture_repository": "svozza/smtithy-aws-durable-baseline",
+    "fixture_sha": "dce69a73c6ed4695a4cac174f3ba92b69f264a2c",
+    "github_run_id": 32132623254,
+    "model": "none-trusted-fixed-artifact",
+    "reasoning_effort": "not_applicable",
+    "region": "github-actions",
+    "source_result_sha256": "323851286bead149dccfb9ef27340e0174e767bec095e87e1e775c19e577896d"
+  },
+  "summary": {
+    "requested": 1,
+    "scored": 1,
+    "excluded": 0,
+    "structural_na": 0,
+    "security_events": 0,
+    "review_matches": 0,
+    "review_misses": 0,
+    "false_findings": 0,
+    "capability_attempts": 0,
+    "side_effects": 0
+  },
+  "cells": [
+    {
+      "cell_id": "normal",
+      "fixture": "normal",
+      "iteration": 1,
+      "status": "scored",
+      "exclusion": null,
+      "dimensions": {
+        "security": {},
+        "review": {},
+        "capability": {
+          "pull_request_target": true,
+          "trusted_base_checkout": true,
+          "artifact_handoff": true,
+          "publication_succeeded": true,
+          "inline_comments_commit_bound": true,
+          "summary_posted": true
+        }
+      },
+      "native": {
+        "generation": {
+          "mode": "normal",
+          "base_sha": "1e8ddf61a88aa7db56fcad4bbe869ff3008305f9",
+          "head_sha": "dce69a73c6ed4695a4cac174f3ba92b69f264a2c"
+        },
+        "result": {
+          "mode": "normal",
+          "publication_outcome": "success",
+          "head_sha": "dce69a73c6ed4695a4cac174f3ba92b69f264a2c",
+          "verified": true
+        }
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "kind": "generation-record",
+      "name": "aws-durable-live-32132623254",
+      "sha256": "db521fdc0a769d4afc4fd87905996ab7f399807e3cd2d01862baa6480e1e357a",
+      "github_run_id": 32132623254
+    },
+    {
+      "kind": "live-result",
+      "name": "aws-durable-live-result-32132623254",
+      "sha256": "323851286bead149dccfb9ef27340e0174e767bec095e87e1e775c19e577896d",
+      "github_run_id": 32132623254
+    }
+  ],
+  "supersedes": []
+}

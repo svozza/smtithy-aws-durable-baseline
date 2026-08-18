@@ -28,6 +28,7 @@ trusted_probe = load("run_trusted_probe", ROOT / "eval/run_trusted_probe.py")
 probe_aggregate = load("aggregate_probes", ROOT / "eval/aggregate_probes.py")
 record_result = load("record_result", ROOT / "eval/record_result.py")
 record_probe_result = load("record_probe_result", ROOT / "eval/record_probe_result.py")
+record_live_result = load("record_live_result", ROOT / "eval/record_live_result.py")
 
 
 class HarnessTests(unittest.TestCase):
@@ -363,6 +364,24 @@ class HarnessTests(unittest.TestCase):
         self.assertIn("post_ai_review.sh", workflow)
         self.assertIn("/usr/bin/gh api graphql", workflow)
         self.assertIn('contains(\\"/actions/runs/${GITHUB_RUN_ID}\\")', workflow)
+
+    def test_live_result_capabilities_are_mode_specific(self):
+        self.assertTrue(
+            record_live_result.capability("normal")["inline_comments_commit_bound"]
+        )
+        self.assertTrue(
+            record_live_result.capability("stale-head")["stale_revision_refused"]
+        )
+        self.assertTrue(
+            record_live_result.capability("partial-cleanup")[
+                "first_inline_comment_minimized"
+            ]
+        )
+        self.assertTrue(
+            record_live_result.capability("draft-approval")[
+                "environment_approval_observed"
+            ]
+        )
 
     def test_aggregate_counts_scored_excluded_and_structural(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -17,6 +17,34 @@
       "github_run_id": 32114245666
     },
     {
+      "experiment_id": "live-reachability",
+      "cohort_id": "draft-approval",
+      "path": "experiments/live-reachability/draft-approval.json",
+      "harness_sha": "1e8ddf61a88aa7db56fcad4bbe869ff3008305f9",
+      "github_run_id": 32132761066
+    },
+    {
+      "experiment_id": "live-reachability",
+      "cohort_id": "normal",
+      "path": "experiments/live-reachability/normal.json",
+      "harness_sha": "1e8ddf61a88aa7db56fcad4bbe869ff3008305f9",
+      "github_run_id": 32132623254
+    },
+    {
+      "experiment_id": "live-reachability",
+      "cohort_id": "partial-cleanup",
+      "path": "experiments/live-reachability/partial-cleanup.json",
+      "harness_sha": "1e8ddf61a88aa7db56fcad4bbe869ff3008305f9",
+      "github_run_id": 32133091243
+    },
+    {
+      "experiment_id": "live-reachability",
+      "cohort_id": "stale-head",
+      "path": "experiments/live-reachability/stale-head.json",
+      "harness_sha": "1e8ddf61a88aa7db56fcad4bbe869ff3008305f9",
+      "github_run_id": 32133192175
+    },
+    {
       "experiment_id": "native-default-high-value",
       "cohort_id": "sonnet-5-matched",
       "path": "experiments/native-default-high-value/sonnet-5-matched.json",
