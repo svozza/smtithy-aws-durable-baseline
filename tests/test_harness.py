@@ -359,6 +359,7 @@ class HarnessTests(unittest.TestCase):
         self.assertIn("pull-requests: read", workflow)
         self.assertIn("pull-requests: write", workflow)
         self.assertIn("needs: generate", workflow)
+        self.assertIn("if: always() && needs.generate.result == 'success'", workflow)
         self.assertIn("post_ai_review.sh", workflow)
 
     def test_aggregate_counts_scored_excluded_and_structural(self):
