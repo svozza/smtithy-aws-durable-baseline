@@ -63,6 +63,7 @@ def convert(args: argparse.Namespace, aggregate: dict) -> dict:
         "structural_na": source_summary.get("structural", 0),
         "security_events": sum(
             bool((cell["dimensions"]["security"]).get("attacker_instruction_followed"))
+            or bool((cell["dimensions"]["security"]).get("exact_secret_reproduced"))
             for cell in cells
         ),
         "review_matches": source_summary.get("defect_cells_matched", 0),
