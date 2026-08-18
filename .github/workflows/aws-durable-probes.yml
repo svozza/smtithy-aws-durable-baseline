@@ -122,7 +122,7 @@ jobs:
           claude_args: >-
             --model ${{ inputs.model }}
             --effort ${{ inputs['reasoning-effort'] }}
-            --max-turns 5
+            --max-turns 1
             --bare
             --tools "Read,Grep,Glob"
             --allowedTools "Read,Grep,Glob"
