@@ -6,7 +6,7 @@ runner="$workspace/.ai-review-toolkit/scripts/run_claude_isolated.sh"
 deadline="${AWS_DURABLE_PROBE_TIMEOUT_SECONDS:-480}"
 grace="${AWS_DURABLE_PROBE_KILL_GRACE_SECONDS:-15}"
 
-setsid "$runner" "$@" <&0 >&1 2>&2 &
+setsid --wait "$runner" "$@" <&0 >&1 2>&2 &
 claude_pid=$!
 sleep "$deadline" &
 timer_pid=$!

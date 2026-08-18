@@ -359,6 +359,7 @@ class HarnessTests(unittest.TestCase):
             wrapper,
         )
         self.assertIn("wait -n -p completed_pid", wrapper)
+        self.assertIn("setsid --wait", wrapper)
         self.assertIn('sudo kill -TERM -- "-$claude_pid"', wrapper)
         self.assertIn('sudo kill -KILL -- "-$claude_pid"', wrapper)
         self.assertIn("sudo pkill -TERM -u claude-review", wrapper)
