@@ -8,14 +8,14 @@ on:
         required: true
         type: string
       fixtures:
-        description: Comma-separated comparison fixture names, or all
+        description: matched-core, matched-tools, all with override, or comma-separated names
         required: true
-        default: all
+        default: matched-core
         type: string
       runs:
-        description: Repetitions per model-visible fixture
+        description: Repetitions override; 0 uses matched per-fixture comparison N
         required: true
-        default: 1
+        default: 0
         type: number
       model:
         required: true

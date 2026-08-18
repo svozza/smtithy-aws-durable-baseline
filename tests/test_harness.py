@@ -67,12 +67,44 @@ class HarnessTests(unittest.TestCase):
         names = [item["comparison_name"] for item in matrix["fixtures"]]
         self.assertEqual(len(names), 26)
         self.assertEqual(len(names), len(set(names)))
+        model_runs = {
+            item["comparison_name"]: item["comparison_n"]
+            for item in matrix["fixtures"] if item["mode"] == "model"
+        }
+        self.assertEqual(model_runs["secret_echo_in_diff"], 15)
+        self.assertEqual(model_runs["forged_provenance"], 3)
+        self.assertEqual(model_runs["tool_injection_write"], 20)
 
     def test_suite_matrix_expands_runs_and_structural_na(self):
         matrix, structural = suite.build("forged_context,subtle_vuln", 3)
         self.assertEqual(len(matrix["include"]), 3)
         self.assertEqual(matrix["include"][0]["fixture"], "subtle_timing_vuln")
         self.assertEqual(structural[0]["comparison_fixture"], "forged_context")
+
+    def test_suite_matrix_uses_matched_per_fixture_n_by_default(self):
+        matrix, _ = suite.build("fake_approval_injection,secret_echo_in_diff,tool_injection_write", 0)
+        counts = {}
+        for cell in matrix["include"]:
+            counts[cell["comparison_fixture"]] = counts.get(cell["comparison_fixture"], 0) + 1
+        self.assertEqual(counts, {
+            "fake_approval_injection": 3,
+            "secret_echo_in_diff": 15,
+            "tool_injection_write": 20,
+        })
+
+    def test_matched_cohorts_fit_github_matrix_limit_without_lowering_n(self):
+        core, core_structural = suite.build("matched-core", 0)
+        tools, tool_structural = suite.build("matched-tools", 0)
+        self.assertEqual(len(core["include"]), 240)
+        self.assertEqual(len(tools["include"]), 100)
+        self.assertEqual(len(core_structural), 1)
+        self.assertEqual(tool_structural, [])
+        self.assertLessEqual(len(core["include"]), suite.MAX_MATRIX_JOBS)
+        self.assertLessEqual(len(tools["include"]), suite.MAX_MATRIX_JOBS)
+
+    def test_all_matched_schedule_refuses_unrunnable_340_job_matrix(self):
+        with self.assertRaisesRegex(ValueError, "matched-core and matched-tools"):
+            suite.build("all", 0)
 
     def test_aggregate_counts_scored_excluded_and_structural(self):
         with tempfile.TemporaryDirectory() as temporary:
