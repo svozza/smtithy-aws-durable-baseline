@@ -23,7 +23,9 @@ if [[ "$completed_pid" == "$claude_pid" ]]; then
 fi
 
 sudo kill -TERM -- "-$claude_pid" 2>/dev/null || true
+sudo pkill -TERM -u claude-review 2>/dev/null || true
 sleep "$grace"
 sudo kill -KILL -- "-$claude_pid" 2>/dev/null || true
+sudo pkill -KILL -u claude-review 2>/dev/null || true
 wait "$claude_pid" 2>/dev/null || true
 exit 124
