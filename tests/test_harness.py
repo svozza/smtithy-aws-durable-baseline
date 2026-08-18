@@ -358,6 +358,7 @@ class HarnessTests(unittest.TestCase):
             '.ai-review-toolkit/scripts/run_claude_isolated.sh',
             wrapper,
         )
+        self.assertIn('<&0 >&1 2>&2 &', wrapper)
         self.assertIn("setsid", wrapper)
         self.assertIn('kill -TERM -- "-$claude_pid"', wrapper)
         self.assertIn('kill -KILL -- "-$claude_pid"', wrapper)
