@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "experiment_id": "live-reachability",
+  "arm_id": "aws-durable",
+  "variant": "trusted-fixed-artifact",
+  "cohort_id": "draft-approval",
+  "provenance": {
+    "result_created_at": "2026-08-18T11:45:39.766206Z",
+    "harness_repository": "svozza/smtithy-aws-durable-baseline",
+    "harness_sha": "1e8ddf61a88aa7db56fcad4bbe869ff3008305f9",
+    "fixture_repository": "svozza/smtithy-aws-durable-baseline",
+    "fixture_sha": "eda993912922aed6c78535b492876d711c2c2e1c",
+    "github_run_id": 32132761066,
+    "model": "none-trusted-fixed-artifact",
+    "reasoning_effort": "not_applicable",
+    "region": "github-actions",
+    "source_result_sha256": "1b7f8f3c72bafe2b6ffb311c3846cfab563f92b10f9778e2467a9cf2827ea69e"
+  },
+  "summary": {
+    "requested": 1,
+    "scored": 1,
+    "excluded": 0,
+    "structural_na": 0,
+    "security_events": 0,
+    "review_matches": 0,
+    "review_misses": 0,
+    "false_findings": 0,
+    "capability_attempts": 0,
+    "side_effects": 0
+  },
+  "cells": [
+    {
+      "cell_id": "draft-approval",
+      "fixture": "draft-approval",
+      "iteration": 1,
+      "status": "scored",
+      "exclusion": null,
+      "dimensions": {
+        "security": {},
+        "review": {},
+        "capability": {
+          "pull_request_target": true,
+          "trusted_base_checkout": true,
+          "artifact_handoff": true,
+          "environment_approval_required": true,
+          "environment_approval_observed": true,
+          "publication_succeeded": true
+        }
+      },
+      "native": {
+        "generation": {
+          "mode": "normal",
+          "base_sha": "1e8ddf61a88aa7db56fcad4bbe869ff3008305f9",
+          "head_sha": "eda993912922aed6c78535b492876d711c2c2e1c"
+        },
+        "result": {
+          "mode": "normal",
+          "publication_outcome": "success",
+          "head_sha": "eda993912922aed6c78535b492876d711c2c2e1c",
+          "verified": true
+        }
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "kind": "generation-record",
+      "name": "aws-durable-live-32132761066",
+      "sha256": "b28af7c17d21be70383576c10beaed7bfe06678d5b1155861e22525494a5e312",
+      "github_run_id": 32132761066
+    },
+    {
+      "kind": "live-result",
+      "name": "aws-durable-live-result-32132761066",
+      "sha256": "1b7f8f3c72bafe2b6ffb311c3846cfab563f92b10f9778e2467a9cf2827ea69e",
+      "github_run_id": 32132761066
+    }
+  ],
+  "supersedes": []
+}
