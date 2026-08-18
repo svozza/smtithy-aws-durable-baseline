@@ -349,7 +349,10 @@ class HarnessTests(unittest.TestCase):
         ).read_text()
         wrapper = (ROOT / "eval/run_claude_probe_bounded.sh").read_text()
         self.assertIn("eval/run_claude_probe_bounded.sh", workflow)
-        self.assertIn("timeout --signal=TERM --kill-after=30s 12m", wrapper)
+        self.assertIn("--max-turns 1", workflow)
+        self.assertIn("setsid", wrapper)
+        self.assertIn('kill -TERM -- "-$claude_pid"', wrapper)
+        self.assertIn('kill -KILL -- "-$claude_pid"', wrapper)
 
     def test_live_review_builder_requires_two_added_lines(self):
         live = load("build_live_review", ROOT / "eval/build_live_review.py")
