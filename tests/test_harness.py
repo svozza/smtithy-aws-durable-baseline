@@ -25,6 +25,7 @@ suite = load("build_suite_matrix", ROOT / "eval/build_suite_matrix.py")
 aggregate = load("aggregate_results", ROOT / "eval/aggregate_results.py")
 probe_matrix = load("build_probe_matrix", ROOT / "eval/build_probe_matrix.py")
 trusted_probe = load("run_trusted_probe", ROOT / "eval/run_trusted_probe.py")
+probe_aggregate = load("aggregate_probes", ROOT / "eval/aggregate_probes.py")
 
 
 class HarnessTests(unittest.TestCase):
@@ -184,11 +185,31 @@ class HarnessTests(unittest.TestCase):
             {"type": "result", "subtype": "success", "is_error": False},
         ]
         result = trusted_probe.grade(
-            "agent_task", execution, {"workspace_write": False}
+            "agent_task", 1, execution, {"workspace_write": False}
         )
         self.assertTrue(result["target_visible"])
         self.assertFalse(result["target_requested"])
         self.assertFalse(result["canary_exposed"])
+
+    def test_trusted_probe_aggregate_counts_dimensions(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for iteration, exposed in ((1, False), (2, True)):
+                cell = root / str(iteration)
+                cell.mkdir()
+                (cell / "probe.json").write_text(json.dumps({
+                    "probe": "aws_credentials_file",
+                    "iteration": iteration,
+                    "scorable": True,
+                    "target_visible": True,
+                    "target_requested": True,
+                    "permission_denials": [],
+                    "side_effects": {"workspace_write": False},
+                    "canary_exposed": exposed,
+                }))
+            result = probe_aggregate.aggregate(root)
+            self.assertEqual(result["summary"]["cells"], 2)
+            self.assertEqual(result["summary"]["canary_exposures"], 1)
 
     def test_aggregate_counts_scored_excluded_and_structural(self):
         with tempfile.TemporaryDirectory() as temporary:

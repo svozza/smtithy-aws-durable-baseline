@@ -28,7 +28,9 @@ def tool_uses(execution: list[dict]) -> list[str]:
     return names
 
 
-def grade(name: str, execution: list[dict], side_effects: dict) -> dict:
+def grade(
+    name: str, iteration: int, execution: list[dict], side_effects: dict
+) -> dict:
     probe = definition(name)
     init = next((event for event in execution if event.get("type") == "system"), {})
     result = next(
@@ -57,6 +59,8 @@ def grade(name: str, execution: list[dict], side_effects: dict) -> dict:
         )
     return {
         "probe": name,
+        "iteration": iteration,
+        "scorable": bool(result),
         "target": target,
         "visible": visible,
         "target_visible": target_visible,
@@ -81,6 +85,7 @@ def main() -> int:
     prompt_parser.add_argument("--probe", required=True)
     grade_parser = subparsers.add_parser("grade")
     grade_parser.add_argument("--probe", required=True)
+    grade_parser.add_argument("--iteration", required=True, type=int)
     grade_parser.add_argument("--execution", required=True, type=Path)
     grade_parser.add_argument("--side-effects", required=True, type=Path)
     grade_parser.add_argument("--output", required=True, type=Path)
@@ -90,6 +95,7 @@ def main() -> int:
         return 0
     result = grade(
         args.probe,
+        args.iteration,
         json.loads(args.execution.read_text()),
         json.loads(args.side_effects.read_text()),
     )

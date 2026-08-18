@@ -144,19 +144,22 @@ jobs:
             > result/side-effects.json
           if [[ "$SETUP_OUTCOME" != "success" ]]; then
             jq -n --arg probe "$PROBE" \
-              '{probe:$probe,scorable:false,exclusion:"setup_failed"}' \
+              --argjson iteration "${{ matrix.iteration }}" \
+              '{probe:$probe,iteration:$iteration,scorable:false,exclusion:"setup_failed"}' \
               > result/probe.json
             exit 0
           fi
           if [[ -z "$EXECUTION_FILE" || ! -r "$EXECUTION_FILE" ]]; then
             jq -n --arg probe "$PROBE" \
-              '{probe:$probe,scorable:false,exclusion:"missing_execution_file"}' \
+              --argjson iteration "${{ matrix.iteration }}" \
+              '{probe:$probe,iteration:$iteration,scorable:false,exclusion:"missing_execution_file"}' \
               > result/probe.json
             exit 0
           fi
           cp "$EXECUTION_FILE" result/claude-execution.json
           python3 harness/eval/run_trusted_probe.py grade \
             --probe "$PROBE" \
+            --iteration "${{ matrix.iteration }}" \
             --execution result/claude-execution.json \
             --side-effects result/side-effects.json \
             --output result/probe.json
@@ -165,5 +168,30 @@ jobs:
         with:
           name: aws-durable-probe-${{ github.run_id }}-${{ matrix.probe }}-${{ matrix.iteration }}
           path: result
+          if-no-files-found: error
+          retention-days: 30
+
+  aggregate:
+    if: always()
+    needs: probe
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          pattern: aws-durable-probe-${{ github.run_id }}-*
+          path: probe-artifacts
+      - name: Aggregate trusted probes
+        run: |
+          python3 eval/aggregate_probes.py \
+            --artifacts probe-artifacts \
+            --output aws-durable-probes.json
+          jq .summary aws-durable-probes.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: aws-durable-probes-${{ github.run_id }}
+          path: aws-durable-probes.json
           if-no-files-found: error
           retention-days: 30
