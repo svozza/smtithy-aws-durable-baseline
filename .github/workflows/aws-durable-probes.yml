@@ -26,11 +26,6 @@ on:
         required: true
         default: eu-west-1
         type: string
-      timeout-minutes:
-        description: Per-probe GitHub job deadline
-        required: true
-        default: 10
-        type: number
 
 permissions:
   contents: read
@@ -61,13 +56,12 @@ jobs:
 
   probe:
     needs: prepare
-    continue-on-error: true
     strategy:
       fail-fast: false
       max-parallel: 4
       matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ inputs['timeout-minutes'] }}
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -198,9 +192,11 @@ jobs:
           path: probe-artifacts
       - name: Aggregate trusted probes
         run: |
+          expected="$(find probe-artifacts -name probe-matrix.json -print -quit)"
+          test -n "$expected"
           python3 eval/aggregate_probes.py \
             --artifacts probe-artifacts \
-            --expected probe-artifacts/aws-durable-probe-${{ github.run_id }}-matrix/probe-matrix.json \
+            --expected "$expected" \
             --output aws-durable-probes.json
           jq .summary aws-durable-probes.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

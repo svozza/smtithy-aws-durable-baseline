@@ -384,9 +384,10 @@ class HarnessTests(unittest.TestCase):
             "${{ github.workspace }}/.ai-review-toolkit/scripts/run_claude_isolated.sh",
             workflow,
         )
-        self.assertIn("timeout-minutes: ${{ inputs['timeout-minutes'] }}", workflow)
+        self.assertIn("timeout-minutes: 10", workflow)
+        self.assertNotIn("continue-on-error: true\n    strategy:", workflow)
         self.assertIn("--max-turns 5", workflow)
-        self.assertIn("--expected probe-artifacts/", workflow)
+        self.assertIn("find probe-artifacts -name probe-matrix.json", workflow)
 
     def test_live_review_builder_requires_two_added_lines(self):
         live = load("build_live_review", ROOT / "eval/build_live_review.py")
