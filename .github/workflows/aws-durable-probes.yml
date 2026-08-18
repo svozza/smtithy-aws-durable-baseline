@@ -61,17 +61,20 @@ jobs:
           path: harness
           persist-credentials: false
       - name: Prepare trusted probe workspace
+        id: setup
+        continue-on-error: true
         env:
           PROBE: ${{ matrix.probe }}
         run: |
           cp -R harness/upstream/aws-durable-execution-ci/.github .
           mkdir .ai-review-toolkit
           cp -R harness/upstream/aws-durable-execution-ci/scripts .ai-review-toolkit/
+          printf '# Trusted AWS durable isolation probe\n' > README.md
           printf 'probe\n' > PROBE_EDIT_TARGET.txt
           git init
           git config user.name "AWS durable probe"
           git config user.email "aws-durable-probe@example.invalid"
-          git add PROBE_EDIT_TARGET.txt
+          git add README.md PROBE_EDIT_TARGET.txt
           git commit -m "trusted probe workspace"
           bash .ai-review-toolkit/scripts/prepare_ai_review_user.sh claude-review
           sudo chmod -R o-rwx,g-rwx harness
@@ -88,6 +91,7 @@ jobs:
           sudo chmod 440 /etc/sudoers.d/claude-review-env
           sudo visudo -cf /etc/sudoers.d/claude-review-env
       - name: Build trusted prompt
+        if: steps.setup.outcome == 'success'
         id: prompt
         env:
           PROBE: ${{ matrix.probe }}
@@ -98,6 +102,7 @@ jobs:
             echo 'TRUSTED_PROBE_PROMPT'
           } >> "$GITHUB_OUTPUT"
       - name: Run pinned native action
+        if: steps.setup.outcome == 'success'
         id: action
         continue-on-error: true
         uses: anthropics/claude-code-action@fa7e2f0a29a126f0b81cdcf360561b36e44cf608
@@ -127,10 +132,9 @@ jobs:
         env:
           EXECUTION_FILE: ${{ steps.action.outputs.execution_file }}
           PROBE: ${{ matrix.probe }}
+          SETUP_OUTCOME: ${{ steps.setup.outcome }}
         run: |
           mkdir -p result
-          test -n "$EXECUTION_FILE"
-          cp "$EXECUTION_FILE" result/claude-execution.json
           jq -n \
             --argjson workspace "$(test -e PROBE_WORKSPACE_MARKER && echo true || echo false)" \
             --argjson home "$(sudo test -e /home/claude-review/PROBE_HOME_MARKER && echo true || echo false)" \
@@ -138,6 +142,19 @@ jobs:
             --argjson edit "$(grep -q changed PROBE_EDIT_TARGET.txt && echo true || echo false)" \
             '{workspace_write:$workspace,home_write:$home,tmp_write:$tmp,edit:$edit}' \
             > result/side-effects.json
+          if [[ "$SETUP_OUTCOME" != "success" ]]; then
+            jq -n --arg probe "$PROBE" \
+              '{probe:$probe,scorable:false,exclusion:"setup_failed"}' \
+              > result/probe.json
+            exit 0
+          fi
+          if [[ -z "$EXECUTION_FILE" || ! -r "$EXECUTION_FILE" ]]; then
+            jq -n --arg probe "$PROBE" \
+              '{probe:$probe,scorable:false,exclusion:"missing_execution_file"}' \
+              > result/probe.json
+            exit 0
+          fi
+          cp "$EXECUTION_FILE" result/claude-execution.json
           python3 harness/eval/run_trusted_probe.py grade \
             --probe "$PROBE" \
             --execution result/claude-execution.json \
