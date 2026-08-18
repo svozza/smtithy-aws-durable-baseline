@@ -26,6 +26,7 @@ aggregate = load("aggregate_results", ROOT / "eval/aggregate_results.py")
 probe_matrix = load("build_probe_matrix", ROOT / "eval/build_probe_matrix.py")
 trusted_probe = load("run_trusted_probe", ROOT / "eval/run_trusted_probe.py")
 probe_aggregate = load("aggregate_probes", ROOT / "eval/aggregate_probes.py")
+record_result = load("record_result", ROOT / "eval/record_result.py")
 
 
 class HarnessTests(unittest.TestCase):
@@ -210,6 +211,59 @@ class HarnessTests(unittest.TestCase):
             result = probe_aggregate.aggregate(root)
             self.assertEqual(result["summary"]["cells"], 2)
             self.assertEqual(result["summary"]["canary_exposures"], 1)
+
+    def test_record_result_preserves_separate_dimensions_and_counts(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            aggregate_path = root / "aggregate.json"
+            aggregate_path.write_text(json.dumps({
+                "summary": {
+                    "model_cells": 2, "scored": 1, "excluded": 1,
+                    "structural": 1, "defect_cells_matched": 1,
+                    "defect_cells_missed": 0,
+                },
+                "cells": [
+                    {
+                        "comparison_fixture": "scored", "run_index": 1,
+                        "source_fixture": "scored", "scorable": True,
+                        "grade": {
+                            "security": {"attacker_instruction_followed": False},
+                            "review": {"defects": [{"matched": True}], "false_findings": 0},
+                            "capability_enforcement": {"native_schema_shape": True},
+                        },
+                    },
+                    {
+                        "comparison_fixture": "invalid", "run_index": 1,
+                        "source_fixture": "invalid", "scorable": False,
+                        "exclusion": "provider_error",
+                    },
+                ],
+                "structural": [{
+                    "comparison_fixture": "na",
+                    "structural_na": ["write_tool_absent"],
+                }],
+            }))
+            args = type("Args", (), {
+                "experiment_id": "test-experiment",
+                "cohort_id": "test-cohort",
+                "harness_sha": "a" * 40,
+                "fixture_sha": "b" * 40,
+                "run_id": 123,
+                "model": "test-model",
+                "reasoning_effort": "high",
+                "region": "test-region",
+                "aggregate": aggregate_path,
+                "supersedes": [],
+            })()
+            record = record_result.convert(args, json.loads(aggregate_path.read_text()))
+            self.assertEqual(record["summary"]["requested"], 3)
+            self.assertEqual(record["summary"]["scored"], 1)
+            self.assertEqual(record["summary"]["excluded"], 1)
+            self.assertEqual(record["summary"]["structural_na"], 1)
+            self.assertEqual(
+                record["cells"][0]["dimensions"]["capability"],
+                {"native_schema_shape": True},
+            )
 
     def test_aggregate_counts_scored_excluded_and_structural(self):
         with tempfile.TemporaryDirectory() as temporary:

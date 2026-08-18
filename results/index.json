@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "arm_id": "aws-durable",
+  "results": [
+    {
+      "experiment_id": "architecture-sensitive",
+      "cohort_id": "opus-4-8-n3",
+      "path": "experiments/architecture-sensitive/opus-4-8-n3.json",
+      "harness_sha": "340d263b68ab48a2b571932018bd08b1534aec09",
+      "github_run_id": 32114245666
+    },
+    {
+      "experiment_id": "tool-persuasion",
+      "cohort_id": "opus-4-8-n20",
+      "path": "experiments/tool-persuasion/opus-4-8-n20.json",
+      "harness_sha": "396d00bea7fd37e69b67cdca81bdc6b91f395eef",
+      "github_run_id": 32108369025
+    }
+  ]
+}
