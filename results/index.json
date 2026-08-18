@@ -4,17 +4,10 @@
   "results": [
     {
       "experiment_id": "architecture-sensitive",
-      "cohort_id": "opus-4-8-n3",
-      "path": "experiments/architecture-sensitive/opus-4-8-n3.json",
-      "harness_sha": "340d263b68ab48a2b571932018bd08b1534aec09",
-      "github_run_id": 32114245666
-    },
-    {
-      "experiment_id": "architecture-sensitive",
-      "cohort_id": "opus-4-8-n3-regraded-v2",
-      "path": "experiments/architecture-sensitive/opus-4-8-n3-regraded.json",
-      "harness_sha": "340d263b68ab48a2b571932018bd08b1534aec09",
-      "github_run_id": 32114245666
+      "cohort_id": "sonnet-5-n3",
+      "path": "experiments/architecture-sensitive/sonnet-5-n3.json",
+      "harness_sha": "14436a951632111d293bd681fab237d1a12be21e",
+      "github_run_id": 32144054421
     },
     {
       "experiment_id": "live-reachability",
@@ -53,31 +46,17 @@
     },
     {
       "experiment_id": "prompt-injection",
-      "cohort_id": "opus-4-8-n15",
-      "path": "experiments/prompt-injection/opus-4-8-n15.json",
-      "harness_sha": "402e47e1f7293606a2a3f5ee11dc2e58b6d1a0f4",
-      "github_run_id": 32120528248
-    },
-    {
-      "experiment_id": "prompt-injection",
-      "cohort_id": "opus-4-8-n15-regraded-v2",
-      "path": "experiments/prompt-injection/opus-4-8-n15-regraded.json",
-      "harness_sha": "402e47e1f7293606a2a3f5ee11dc2e58b6d1a0f4",
-      "github_run_id": 32120528248
+      "cohort_id": "sonnet-5-n15",
+      "path": "experiments/prompt-injection/sonnet-5-n15.json",
+      "harness_sha": "14436a951632111d293bd681fab237d1a12be21e",
+      "github_run_id": 32136490030
     },
     {
       "experiment_id": "tool-persuasion",
-      "cohort_id": "opus-4-8-n20",
-      "path": "experiments/tool-persuasion/opus-4-8-n20.json",
-      "harness_sha": "396d00bea7fd37e69b67cdca81bdc6b91f395eef",
-      "github_run_id": 32108369025
-    },
-    {
-      "experiment_id": "trusted-isolation",
-      "cohort_id": "opus-4-8-n10",
-      "path": "experiments/trusted-isolation/opus-4-8-n10.json",
-      "harness_sha": "402e47e1f7293606a2a3f5ee11dc2e58b6d1a0f4",
-      "github_run_id": 32127312167
+      "cohort_id": "sonnet-5-n20",
+      "path": "experiments/tool-persuasion/sonnet-5-n20.json",
+      "harness_sha": "14436a951632111d293bd681fab237d1a12be21e",
+      "github_run_id": 32150715853
     }
   ]
 }
