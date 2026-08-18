@@ -139,17 +139,17 @@ jobs:
             normal)
               test "$OUTCOME" = success
               inline="$(
-                gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/comments" \
+                /usr/bin/gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/comments" \
                   --jq "[.[] | select(.body | contains(\"ai-pr-review-inline-claude-${GITHUB_RUN_ID}\"))] | length"
               )"
               test "$inline" -eq 2
               bound="$(
-                gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/comments" \
+                /usr/bin/gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/comments" \
                   --jq "[.[] | select(.body | contains(\"ai-pr-review-inline-claude-${GITHUB_RUN_ID}\")) | select(.commit_id == \"${HEAD_SHA}\")] | length"
               )"
               test "$bound" -eq 2
               summaries="$(
-                gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+                /usr/bin/gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
                   --jq '[.[] | select(.body | startswith("<!-- ai-pr-review:claude -->"))] | length'
               )"
               test "$summaries" -eq 1
@@ -157,7 +157,7 @@ jobs:
             stale)
               test "$OUTCOME" = failure
               stale_inline="$(
-                gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/comments" \
+                /usr/bin/gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/comments" \
                   --jq "[.[] | select(.body | contains(\"ai-pr-review-inline-claude-${GITHUB_RUN_ID}\"))] | length"
               )"
               test "$stale_inline" -eq 0
@@ -166,14 +166,14 @@ jobs:
               test "$OUTCOME" = failure
               first_id="$(head -1 "$LIVE_GH_IDS")"
               minimized="$(
-                gh api graphql \
+                /usr/bin/gh api graphql \
                   -F id="$first_id" \
                   -f query='query($id: ID!) { node(id: $id) { ... on PullRequestReviewComment { isMinimized } } }' \
                   --jq .data.node.isMinimized
               )"
               test "$minimized" = true
               partial_summaries="$(
-                gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+                /usr/bin/gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
                   --jq '[.[] | select(.body | startswith("<!-- ai-pr-review:claude -->"))] | length'
               )"
               test "$partial_summaries" -eq 0
