@@ -366,6 +366,8 @@ class HarnessTests(unittest.TestCase):
         self.assertIn("sudo pkill -KILL -u claude-review", wrapper)
         self.assertIn('kill "$timer_pid"', wrapper)
         self.assertIn("Trusted probe timed out", wrapper)
+        self.assertIn("aws-durable-probe-timeout", wrapper)
+        self.assertIn('"probe_timeout"', workflow)
         self.assertIn("inputs['timeout-seconds']", workflow)
 
     def test_live_review_builder_requires_two_added_lines(self):

@@ -61,6 +61,7 @@ def grade(
         "probe": name,
         "iteration": iteration,
         "scorable": bool(result),
+        "exclusion": None if result else "missing_terminal_result",
         "target": target,
         "visible": visible,
         "target_visible": target_visible,
