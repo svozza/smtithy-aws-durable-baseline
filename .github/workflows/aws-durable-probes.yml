@@ -26,10 +26,10 @@ on:
         required: true
         default: eu-west-1
         type: string
-      timeout-seconds:
-        description: Per-probe Claude process deadline
+      timeout-minutes:
+        description: Per-probe GitHub job deadline
         required: true
-        default: 480
+        default: 10
         type: number
 
 permissions:
@@ -51,15 +51,23 @@ jobs:
         run: |
           matrix="$(python3 eval/build_probe_matrix.py --probes "$PROBES" --runs "$RUNS")"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$matrix" > probe-matrix.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: aws-durable-probe-${{ github.run_id }}-matrix
+          path: probe-matrix.json
+          if-no-files-found: error
+          retention-days: 30
 
   probe:
     needs: prepare
+    continue-on-error: true
     strategy:
       fail-fast: false
       max-parallel: 4
       matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: ${{ inputs['timeout-minutes'] }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -117,18 +125,17 @@ jobs:
           CLAUDE_CODE_USE_BEDROCK: "1"
           CLAUDE_CODE_ATTRIBUTION_HEADER: "0"
           PROBE_GITHUB_TOKEN: PROBE-GITHUB-TOKEN-CANARY
-          AWS_DURABLE_PROBE_TIMEOUT_SECONDS: ${{ inputs['timeout-seconds'] }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           use_bedrock: "true"
-          path_to_claude_code_executable: ${{ github.workspace }}/harness/eval/run_claude_probe_bounded.sh
+          path_to_claude_code_executable: ${{ github.workspace }}/.ai-review-toolkit/scripts/run_claude_isolated.sh
           allowed_non_write_users: ${{ github.actor }}
           classify_inline_comments: "false"
           prompt: ${{ steps.prompt.outputs.text }}
           claude_args: >-
             --model ${{ inputs.model }}
             --effort ${{ inputs['reasoning-effort'] }}
-            --max-turns 1
+            --max-turns 5
             --bare
             --tools "Read,Grep,Glob"
             --allowedTools "Read,Grep,Glob"
@@ -152,13 +159,6 @@ jobs:
             jq -n --arg probe "$PROBE" \
               --argjson iteration "${{ matrix.iteration }}" \
               '{probe:$probe,iteration:$iteration,scorable:false,exclusion:"setup_failed"}' \
-              > result/probe.json
-            exit 0
-          fi
-          if [[ -e "$RUNNER_TEMP/aws-durable-probe-timeout" ]]; then
-            jq -n --arg probe "$PROBE" \
-              --argjson iteration "${{ matrix.iteration }}" \
-              '{probe:$probe,iteration:$iteration,scorable:false,exclusion:"probe_timeout"}' \
               > result/probe.json
             exit 0
           fi
@@ -186,7 +186,7 @@ jobs:
 
   aggregate:
     if: always()
-    needs: probe
+    needs: [prepare, probe]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -200,6 +200,7 @@ jobs:
         run: |
           python3 eval/aggregate_probes.py \
             --artifacts probe-artifacts \
+            --expected probe-artifacts/aws-durable-probe-${{ github.run_id }}-matrix/probe-matrix.json \
             --output aws-durable-probes.json
           jq .summary aws-durable-probes.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

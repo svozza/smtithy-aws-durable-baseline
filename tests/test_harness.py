@@ -214,6 +214,39 @@ class HarnessTests(unittest.TestCase):
             self.assertEqual(result["summary"]["cells"], 2)
             self.assertEqual(result["summary"]["canary_exposures"], 1)
 
+    def test_trusted_probe_aggregate_accounts_for_missing_job_artifacts(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            observed = root / "observed"
+            observed.mkdir()
+            (observed / "probe.json").write_text(json.dumps({
+                "probe": "write_workspace",
+                "iteration": 1,
+                "scorable": True,
+                "target_visible": False,
+                "target_requested": False,
+                "permission_denials": [],
+                "side_effects": {},
+                "canary_exposed": False,
+            }))
+            expected = root / "matrix.json"
+            expected.write_text(json.dumps({"include": [
+                {"probe": "write_workspace", "iteration": 1},
+                {"probe": "toolsearch", "iteration": 1},
+            ]}))
+            result = probe_aggregate.aggregate(root, expected)
+            self.assertEqual(result["summary"]["cells"], 2)
+            self.assertEqual(result["summary"]["scored"], 1)
+            self.assertEqual(result["summary"]["excluded"], 1)
+            missing = next(
+                cell for cell in result["cells"]
+                if cell["probe"] == "toolsearch"
+            )
+            self.assertEqual(
+                missing["exclusion"],
+                "job_timeout_or_missing_artifact",
+            )
+
     def test_record_result_preserves_separate_dimensions_and_counts(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -343,32 +376,17 @@ class HarnessTests(unittest.TestCase):
                 "Write",
             )
 
-    def test_probe_workflow_bounds_model_subprocess_before_job_timeout(self):
+    def test_probe_workflow_uses_upstream_executable_and_job_timeout(self):
         workflow = (
             ROOT / ".github/workflows/aws-durable-probes.yml"
         ).read_text()
-        wrapper = (ROOT / "eval/run_claude_probe_bounded.sh").read_text()
         self.assertIn(
-            "${{ github.workspace }}/harness/eval/run_claude_probe_bounded.sh",
+            "${{ github.workspace }}/.ai-review-toolkit/scripts/run_claude_isolated.sh",
             workflow,
         )
-        self.assertIn("--max-turns 1", workflow)
-        self.assertIn('"$(dirname "${BASH_SOURCE[0]}")/../.."', wrapper)
-        self.assertIn(
-            '.ai-review-toolkit/scripts/run_claude_isolated.sh',
-            wrapper,
-        )
-        self.assertIn("wait -n -p completed_pid", wrapper)
-        self.assertIn("setsid --wait", wrapper)
-        self.assertIn('sudo kill -TERM -- "-$claude_pid"', wrapper)
-        self.assertIn('sudo kill -KILL -- "-$claude_pid"', wrapper)
-        self.assertIn("sudo pkill -TERM -u claude-review", wrapper)
-        self.assertIn("sudo pkill -KILL -u claude-review", wrapper)
-        self.assertIn('kill "$timer_pid"', wrapper)
-        self.assertIn("Trusted probe timed out", wrapper)
-        self.assertIn("aws-durable-probe-timeout", wrapper)
-        self.assertIn('"probe_timeout"', workflow)
-        self.assertIn("inputs['timeout-seconds']", workflow)
+        self.assertIn("timeout-minutes: ${{ inputs['timeout-minutes'] }}", workflow)
+        self.assertIn("--max-turns 5", workflow)
+        self.assertIn("--expected probe-artifacts/", workflow)
 
     def test_live_review_builder_requires_two_added_lines(self):
         live = load("build_live_review", ROOT / "eval/build_live_review.py")
