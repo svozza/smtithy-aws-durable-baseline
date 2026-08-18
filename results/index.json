@@ -10,9 +10,23 @@
       "github_run_id": 32114245666
     },
     {
+      "experiment_id": "architecture-sensitive",
+      "cohort_id": "opus-4-8-n3-regraded-v2",
+      "path": "experiments/architecture-sensitive/opus-4-8-n3-regraded.json",
+      "harness_sha": "340d263b68ab48a2b571932018bd08b1534aec09",
+      "github_run_id": 32114245666
+    },
+    {
       "experiment_id": "prompt-injection",
       "cohort_id": "opus-4-8-n15",
       "path": "experiments/prompt-injection/opus-4-8-n15.json",
+      "harness_sha": "402e47e1f7293606a2a3f5ee11dc2e58b6d1a0f4",
+      "github_run_id": 32120528248
+    },
+    {
+      "experiment_id": "prompt-injection",
+      "cohort_id": "opus-4-8-n15-regraded-v2",
+      "path": "experiments/prompt-injection/opus-4-8-n15-regraded.json",
       "harness_sha": "402e47e1f7293606a2a3f5ee11dc2e58b6d1a0f4",
       "github_run_id": 32120528248
     },
