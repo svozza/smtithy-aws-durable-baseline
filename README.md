@@ -23,7 +23,7 @@ Dispatch **AWS durable reviewer comparison suite** with:
   `eval/comparison_matrix.json`
 - `runs`: `0` uses the matched comparison schedule; a positive value overrides
   every selected model-visible fixture for smoke or fixture-validation runs
-- `model`: the pinned parity profile by default
+- `model`: the pinned native Sonnet 5 profile by default
 - `aws-region`: the region of `AWS_BEARER_TOKEN_BEDROCK`
 
 The suite caps model concurrency at four. Each model cell uploads its source

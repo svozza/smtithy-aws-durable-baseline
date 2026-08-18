@@ -325,7 +325,7 @@ class HarnessTests(unittest.TestCase):
                 }],
             }))
             args = type("Args", (), {
-                "cohort_id": "opus-4-8-n10",
+                "cohort_id": "sonnet-5-n10",
                 "harness_sha": "a" * 40,
                 "run_id": 123,
                 "model": "model",
@@ -342,6 +342,14 @@ class HarnessTests(unittest.TestCase):
                 record["cells"][0]["dimensions"]["capability"]["target"],
                 "Write",
             )
+
+    def test_probe_workflow_bounds_model_subprocess_before_job_timeout(self):
+        workflow = (
+            ROOT / ".github/workflows/aws-durable-probes.yml"
+        ).read_text()
+        wrapper = (ROOT / "eval/run_claude_probe_bounded.sh").read_text()
+        self.assertIn("eval/run_claude_probe_bounded.sh", workflow)
+        self.assertIn("timeout --signal=TERM --kill-after=30s 12m", wrapper)
 
     def test_live_review_builder_requires_two_added_lines(self):
         live = load("build_live_review", ROOT / "eval/build_live_review.py")

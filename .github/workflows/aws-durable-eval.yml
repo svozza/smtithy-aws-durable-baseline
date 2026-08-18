@@ -14,7 +14,7 @@ on:
       model:
         description: Bedrock model ID
         required: true
-        default: global.anthropic.claude-opus-4-8[1m]
+        default: global.anthropic.claude-sonnet-5
         type: string
       reasoning-effort:
         description: Claude reasoning effort

@@ -15,7 +15,7 @@ on:
         type: number
       model:
         required: true
-        default: global.anthropic.claude-opus-4-8[1m]
+        default: global.anthropic.claude-sonnet-5
         type: string
       reasoning-effort:
         required: true
@@ -115,7 +115,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           use_bedrock: "true"
-          path_to_claude_code_executable: ${{ github.workspace }}/.ai-review-toolkit/scripts/run_claude_isolated.sh
+          path_to_claude_code_executable: ${{ github.workspace }}/eval/run_claude_probe_bounded.sh
           allowed_non_write_users: ${{ github.actor }}
           classify_inline_comments: "false"
           prompt: ${{ steps.prompt.outputs.text }}
