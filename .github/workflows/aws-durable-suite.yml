@@ -39,6 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
+      model-count: ${{ steps.matrix.outputs.model-count }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -55,6 +56,7 @@ jobs:
               --structural-output structural-results.json
           )"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "model-count=$(jq '.include | length' <<< "$matrix")" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: aws-durable-structural-${{ github.run_id }}
@@ -63,6 +65,7 @@ jobs:
           retention-days: 30
 
   evaluate:
+    if: needs.prepare.outputs.model-count != '0'
     needs: prepare
     strategy:
       fail-fast: false

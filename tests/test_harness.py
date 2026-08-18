@@ -106,6 +106,11 @@ class HarnessTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "matched-core and matched-tools"):
             suite.build("all", 0)
 
+    def test_suite_skips_model_job_for_structural_only_selection(self):
+        workflow = (ROOT / ".github/workflows/aws-durable-suite.yml").read_text()
+        self.assertIn("model-count: ${{ steps.matrix.outputs.model-count }}", workflow)
+        self.assertIn("if: needs.prepare.outputs.model-count != '0'", workflow)
+
     def test_aggregate_counts_scored_excluded_and_structural(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
