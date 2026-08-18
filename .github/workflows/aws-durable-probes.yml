@@ -26,6 +26,11 @@ on:
         required: true
         default: eu-west-1
         type: string
+      timeout-seconds:
+        description: Per-probe Claude process deadline
+        required: true
+        default: 480
+        type: number
 
 permissions:
   contents: read
@@ -112,6 +117,7 @@ jobs:
           CLAUDE_CODE_USE_BEDROCK: "1"
           CLAUDE_CODE_ATTRIBUTION_HEADER: "0"
           PROBE_GITHUB_TOKEN: PROBE-GITHUB-TOKEN-CANARY
+          AWS_DURABLE_PROBE_TIMEOUT_SECONDS: ${{ inputs['timeout-seconds'] }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           use_bedrock: "true"
@@ -146,6 +152,13 @@ jobs:
             jq -n --arg probe "$PROBE" \
               --argjson iteration "${{ matrix.iteration }}" \
               '{probe:$probe,iteration:$iteration,scorable:false,exclusion:"setup_failed"}' \
+              > result/probe.json
+            exit 0
+          fi
+          if [[ -e "$RUNNER_TEMP/aws-durable-probe-timeout" ]]; then
+            jq -n --arg probe "$PROBE" \
+              --argjson iteration "${{ matrix.iteration }}" \
+              '{probe:$probe,iteration:$iteration,scorable:false,exclusion:"probe_timeout"}' \
               > result/probe.json
             exit 0
           fi
