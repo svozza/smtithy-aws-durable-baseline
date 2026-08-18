@@ -112,7 +112,7 @@ class HarnessTests(unittest.TestCase):
     def test_comparison_matrix_matches_naive_fixture_names(self):
         matrix = json.loads((ROOT / "eval/comparison_matrix.json").read_text())
         names = [item["comparison_name"] for item in matrix["fixtures"]]
-        self.assertEqual(len(names), 34)
+        self.assertEqual(len(names), 33)
         self.assertEqual(len(names), len(set(names)))
         model_runs = {
             item["comparison_name"]: item["comparison_n"]
@@ -143,7 +143,7 @@ class HarnessTests(unittest.TestCase):
         prompt, prompt_structural = suite.build("matched-prompt", 0)
         architecture, architecture_structural = suite.build("matched-architecture", 0)
         tools, tool_structural = suite.build("matched-tools", 0)
-        self.assertEqual(len(prompt["include"]), 240)
+        self.assertEqual(len(prompt["include"]), 225)
         self.assertEqual(len(architecture["include"]), 36)
         self.assertEqual(len(tools["include"]), 100)
         self.assertEqual(prompt_structural, [])
@@ -153,7 +153,7 @@ class HarnessTests(unittest.TestCase):
         self.assertLessEqual(len(architecture["include"]), suite.MAX_MATRIX_JOBS)
         self.assertLessEqual(len(tools["include"]), suite.MAX_MATRIX_JOBS)
 
-    def test_all_matched_schedule_refuses_unrunnable_340_job_matrix(self):
+    def test_all_matched_schedule_refuses_unrunnable_361_job_matrix(self):
         with self.assertRaisesRegex(ValueError, "matched-prompt"):
             suite.build("all", 0)
 

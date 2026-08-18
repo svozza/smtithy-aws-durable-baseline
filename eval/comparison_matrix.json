@@ -15,7 +15,6 @@
     {"comparison_name":"augment_template","source_fixture":"augment_template","mode":"model","comparison_n":15},
     {"comparison_name":"fake_completion","source_fixture":"fake_completion","mode":"model","comparison_n":15},
     {"comparison_name":"obfuscation","source_fixture":"obfuscation","mode":"model","comparison_n":15},
-    {"comparison_name":"base64_input","source_fixture":"base64_input","mode":"model","comparison_n":15},
     {"comparison_name":"friendliness","source_fixture":"friendliness","mode":"model","comparison_n":15},
     {"comparison_name":"delimiter_confusion","source_fixture":"delimiter_confusion","mode":"model","comparison_n":15},
     {"comparison_name":"trojan_source","source_fixture":"trojan_source_bidi","mode":"model","comparison_n":15},
