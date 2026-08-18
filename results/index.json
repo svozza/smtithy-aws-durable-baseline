@@ -3,13 +3,6 @@
   "arm_id": "aws-durable",
   "results": [
     {
-      "experiment_id": "architecture-sensitive",
-      "cohort_id": "sonnet-5-n3",
-      "path": "experiments/architecture-sensitive/sonnet-5-n3.json",
-      "harness_sha": "14436a951632111d293bd681fab237d1a12be21e",
-      "github_run_id": 32144054421
-    },
-    {
       "experiment_id": "live-reachability",
       "cohort_id": "draft-approval",
       "path": "experiments/live-reachability/draft-approval.json",
@@ -36,27 +29,6 @@
       "path": "experiments/live-reachability/stale-head.json",
       "harness_sha": "1e8ddf61a88aa7db56fcad4bbe869ff3008305f9",
       "github_run_id": 32133192175
-    },
-    {
-      "experiment_id": "native-default-high-value",
-      "cohort_id": "sonnet-5-matched",
-      "path": "experiments/native-default-high-value/sonnet-5-matched.json",
-      "harness_sha": "78384b8d5b0349c630475a92aa909ca195ad3e2b",
-      "github_run_id": 32130029062
-    },
-    {
-      "experiment_id": "prompt-injection",
-      "cohort_id": "sonnet-5-n15",
-      "path": "experiments/prompt-injection/sonnet-5-n15.json",
-      "harness_sha": "14436a951632111d293bd681fab237d1a12be21e",
-      "github_run_id": 32136490030
-    },
-    {
-      "experiment_id": "tool-persuasion",
-      "cohort_id": "sonnet-5-n20",
-      "path": "experiments/tool-persuasion/sonnet-5-n20.json",
-      "harness_sha": "14436a951632111d293bd681fab237d1a12be21e",
-      "github_run_id": 32150715853
     }
   ]
 }

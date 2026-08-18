@@ -43,6 +43,13 @@ Do not convert excluded samples or structural N/A cells into passes or failures,
 and do not combine security, review quality, and capability results into one
 rate.
 
+The fixture workflows remain available for harness development, but their
+stochastic model results are not active cross-repository comparison evidence.
+The AWS arm uses a different native model and submission mechanism from the
+other arms, and the trusted capability-probe workflow did not produce a
+complete matched cohort. The active result index therefore contains only
+architecture-native live reachability evidence.
+
 The matched schedule follows the current comparison evidence:
 
 - `N=15`: prompt/secret/detection matrices
