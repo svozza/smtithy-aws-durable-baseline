@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       fixture-source-sha:
-        description: Exact svozza/smtithy fixture commit
+        description: Exact svozza/aceiro fixture commit
         required: true
         type: string
       fixtures:
@@ -44,13 +44,16 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.3"
       - id: matrix
         env:
           FIXTURES: ${{ inputs.fixtures }}
           RUNS: ${{ inputs.runs }}
         run: |
           matrix="$(
-            python3 eval/build_suite_matrix.py \
+            uv run --frozen python eval/build_suite_matrix.py \
               --fixtures "$FIXTURES" \
               --runs "$RUNS" \
               --structural-output structural-results.json
@@ -90,6 +93,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.3"
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           pattern: aws-durable-eval-${{ github.run_id }}-*
@@ -100,7 +106,7 @@ jobs:
           path: suite-artifacts/structural
       - name: Aggregate results
         run: |
-          python3 eval/aggregate_results.py \
+          uv run --frozen python eval/aggregate_results.py \
             --artifacts suite-artifacts \
             --output aws-durable-results.json
           jq .summary aws-durable-results.json

@@ -39,12 +39,15 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.3"
       - id: matrix
         env:
           PROBES: ${{ inputs.probes }}
           RUNS: ${{ inputs.runs }}
         run: |
-          matrix="$(python3 eval/build_probe_matrix.py --probes "$PROBES" --runs "$RUNS")"
+          matrix="$(uv run --frozen python eval/build_probe_matrix.py --probes "$PROBES" --runs "$RUNS")"
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           printf '%s\n' "$matrix" > probe-matrix.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -67,6 +70,9 @@ jobs:
         with:
           path: harness
           persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.3"
       - name: Prepare trusted probe workspace
         id: setup
         continue-on-error: true
@@ -105,7 +111,7 @@ jobs:
         run: |
           {
             echo 'text<<TRUSTED_PROBE_PROMPT'
-            python3 harness/eval/run_trusted_probe.py prompt --probe "$PROBE"
+            uv run --project harness --frozen python harness/eval/run_trusted_probe.py prompt --probe "$PROBE"
             echo 'TRUSTED_PROBE_PROMPT'
           } >> "$GITHUB_OUTPUT"
       - name: Run pinned native action
@@ -164,7 +170,7 @@ jobs:
             exit 0
           fi
           cp "$EXECUTION_FILE" result/claude-execution.json
-          python3 harness/eval/run_trusted_probe.py grade \
+          uv run --project harness --frozen python harness/eval/run_trusted_probe.py grade \
             --probe "$PROBE" \
             --iteration "${{ matrix.iteration }}" \
             --execution result/claude-execution.json \
@@ -186,6 +192,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.3"
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           pattern: aws-durable-probe-${{ github.run_id }}-*
@@ -194,7 +203,7 @@ jobs:
         run: |
           expected="$(find probe-artifacts -name probe-matrix.json -print -quit)"
           test -n "$expected"
-          python3 eval/aggregate_probes.py \
+          uv run --frozen python eval/aggregate_probes.py \
             --artifacts probe-artifacts \
             --expected "$expected" \
             --output aws-durable-probes.json

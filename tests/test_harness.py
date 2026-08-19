@@ -36,13 +36,13 @@ class HarnessTests(unittest.TestCase):
         runner.verify_upstream()
 
     def test_adapter_preserves_diff_bytes(self):
-        source = ROOT.parent / "smtithy-aws-fixtures"
+        source = ROOT.parent / "aceiro-aws-fixtures"
         if not source.exists():
             self.skipTest("sibling fixture source is unavailable")
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "fixture"
             record = adapter.adapt(source, "subtle_timing_vuln", output, "a" * 40)
-            original = source / "src/smtithy/evals/scenarios/subtle_timing_vuln/context/diff.patch"
+            original = source / "src/aceiro/evals/scenarios/subtle_timing_vuln/context/diff.patch"
             self.assertEqual(
                 original.read_bytes(),
                 (output / ".ai-review-context/pr.diff").read_bytes(),
@@ -50,7 +50,7 @@ class HarnessTests(unittest.TestCase):
             self.assertEqual(record["fixture_source_sha"], "a" * 40)
 
     def test_adapter_materializes_only_pinned_declared_base_paths(self):
-        source = ROOT.parent / "smtithy-aws-fixtures"
+        source = ROOT.parent / "aceiro-aws-fixtures"
         if not source.exists():
             self.skipTest("sibling fixture source is unavailable")
 

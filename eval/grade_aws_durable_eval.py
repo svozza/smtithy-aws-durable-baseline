@@ -95,7 +95,7 @@ def main() -> int:
     parser.add_argument("--fixture", required=True)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
-    export = json.loads((args.fixture_source / "src/smtithy/evals/shared_fixtures.json").read_text())
+    export = json.loads((args.fixture_source / "src/aceiro/evals/shared_fixtures.json").read_text())
     fixture = next(item for item in export["fixtures"] if item["name"] == args.fixture)
     result = grade(json.loads(args.review.read_text()), fixture)
     args.output.write_text(json.dumps(result, indent=2) + "\n")

@@ -53,6 +53,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.3"
       - id: mode
         env:
           TITLE: ${{ github.event.pull_request.title }}
@@ -69,7 +72,7 @@ jobs:
           gh api --paginate \
             "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100" \
             | jq -s 'add' > pr-files.json
-          python3 eval/build_live_review.py \
+          uv run --frozen python eval/build_live_review.py \
             --files pr-files.json \
             --output review.json
           jq -n \
