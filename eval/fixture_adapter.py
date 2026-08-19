@@ -22,7 +22,7 @@ def digest(path: Path) -> str:
 
 
 def load_export(source: Path, name: str) -> tuple[dict, Path]:
-    manifest_path = source / "src/smtithy/evals/shared_fixtures.json"
+    manifest_path = source / "src/aceiro/evals/shared_fixtures.json"
     manifest = json.loads(manifest_path.read_text())
     matches = [item for item in manifest["fixtures"] if item["name"] == name]
     if len(matches) != 1:

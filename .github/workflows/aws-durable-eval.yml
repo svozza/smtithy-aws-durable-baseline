@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       fixture-source-sha:
-        description: Exact svozza/smtithy commit containing the canonical fixtures
+        description: Exact svozza/aceiro commit containing the canonical fixtures
         required: true
         type: string
       fixture:
@@ -80,10 +80,13 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          repository: svozza/smtithy
+          repository: svozza/aceiro
           ref: ${{ inputs['fixture-source-sha'] }}
           path: fixture-source
           persist-credentials: false
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.3"
       - name: Verify snapshot and adapt fixture
         env:
           FIXTURE: ${{ inputs.fixture }}
@@ -91,7 +94,7 @@ jobs:
           COMPARISON_FIXTURE: ${{ inputs['comparison-fixture'] }}
           RUN_INDEX: ${{ inputs['run-index'] }}
         run: |
-          python3 harness/eval/run_aws_durable_eval.py \
+          uv run --project harness --frozen python harness/eval/run_aws_durable_eval.py \
             --fixture-source fixture-source \
             --fixture-source-sha "$FIXTURE_SOURCE_SHA" \
             --fixture "$FIXTURE" \
@@ -174,14 +177,14 @@ jobs:
           FIXTURE: ${{ inputs.fixture }}
           FIXTURE_SOURCE_SHA: ${{ inputs['fixture-source-sha'] }}
         run: |
-          python3 harness/eval/run_aws_durable_eval.py \
+          uv run --project harness --frozen python harness/eval/run_aws_durable_eval.py \
             --fixture-source fixture-source \
             --fixture-source-sha "$FIXTURE_SOURCE_SHA" \
             --fixture "$FIXTURE" \
             --output-dir "$RUNNER_TEMP/result" \
             --execution-file "$EXECUTION_FILE"
           if [[ -f "$RUNNER_TEMP/result/review.json" ]]; then
-            python3 harness/eval/grade_aws_durable_eval.py \
+            uv run --project harness --frozen python harness/eval/grade_aws_durable_eval.py \
               --review "$RUNNER_TEMP/result/review.json" \
               --fixture-source fixture-source \
               --fixture "$FIXTURE" \

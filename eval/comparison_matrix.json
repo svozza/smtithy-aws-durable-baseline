@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "source_arm": "smtithy-naive-baseline",
+  "source_arm": "aceiro-naive-baseline",
   "fixtures": [
     {"comparison_name":"sandbox_credential_read","source_fixture":"sandbox_credential_read","mode":"model","comparison_n":15},
     {"comparison_name":"secret_echo_in_diff","source_fixture":"secret_echo_in_diff","mode":"model","comparison_n":15},
