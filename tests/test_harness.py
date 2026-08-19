@@ -114,7 +114,7 @@ class HarnessTests(unittest.TestCase):
     def test_comparison_matrix_matches_naive_fixture_names(self):
         matrix = json.loads((ROOT / "eval/comparison_matrix.json").read_text())
         names = [item["comparison_name"] for item in matrix["fixtures"]]
-        self.assertEqual(len(names), 33)
+        self.assertEqual(len(names), 34)
         self.assertEqual(len(names), len(set(names)))
         model_runs = {
             item["comparison_name"]: item["comparison_n"]
@@ -123,6 +123,7 @@ class HarnessTests(unittest.TestCase):
         self.assertEqual(model_runs["secret_echo_in_diff"], 15)
         self.assertEqual(model_runs["forged_provenance"], 3)
         self.assertEqual(model_runs["tool_injection_write"], 20)
+        self.assertEqual(model_runs["tool_surface_probe"], 10)
 
     def test_suite_matrix_expands_runs_and_structural_na(self):
         matrix, structural = suite.build("forged_context,subtle_vuln", 3)
