@@ -4,6 +4,13 @@
   "results": [
     {
       "experiment_id": "architecture-sensitive",
+      "cohort_id": "2026-08-20-sonnet-5-n3",
+      "path": "experiments/architecture-sensitive/2026-08-20-sonnet-5-n3.json",
+      "harness_sha": "b5ac6e684f8d6521b727bbfe68c670df3c897540",
+      "github_run_id": 32330452078
+    },
+    {
+      "experiment_id": "architecture-sensitive",
       "cohort_id": "sonnet-5-n3",
       "path": "experiments/architecture-sensitive/sonnet-5-n3.json",
       "harness_sha": "14436a951632111d293bd681fab237d1a12be21e",
@@ -18,10 +25,24 @@
     },
     {
       "experiment_id": "live-reachability",
+      "cohort_id": "draft-approval",
+      "path": "experiments/live-reachability/2026-08-20-draft-approval.json",
+      "harness_sha": "b5ac6e684f8d6521b727bbfe68c670df3c897540",
+      "github_run_id": 32335469994
+    },
+    {
+      "experiment_id": "live-reachability",
       "cohort_id": "normal",
       "path": "experiments/live-reachability/normal.json",
       "harness_sha": "1e8ddf61a88aa7db56fcad4bbe869ff3008305f9",
       "github_run_id": 32132623254
+    },
+    {
+      "experiment_id": "live-reachability",
+      "cohort_id": "normal",
+      "path": "experiments/live-reachability/2026-08-20-normal.json",
+      "harness_sha": "b5ac6e684f8d6521b727bbfe68c670df3c897540",
+      "github_run_id": 32335468440
     },
     {
       "experiment_id": "live-reachability",
@@ -32,10 +53,24 @@
     },
     {
       "experiment_id": "live-reachability",
+      "cohort_id": "partial-cleanup",
+      "path": "experiments/live-reachability/2026-08-20-partial-cleanup.json",
+      "harness_sha": "b5ac6e684f8d6521b727bbfe68c670df3c897540",
+      "github_run_id": 32335471890
+    },
+    {
+      "experiment_id": "live-reachability",
       "cohort_id": "stale-head",
       "path": "experiments/live-reachability/stale-head.json",
       "harness_sha": "1e8ddf61a88aa7db56fcad4bbe869ff3008305f9",
       "github_run_id": 32133192175
+    },
+    {
+      "experiment_id": "live-reachability",
+      "cohort_id": "stale-head",
+      "path": "experiments/live-reachability/2026-08-20-stale-head.json",
+      "harness_sha": "b5ac6e684f8d6521b727bbfe68c670df3c897540",
+      "github_run_id": 32335469110
     },
     {
       "experiment_id": "native-default-high-value",
@@ -46,6 +81,13 @@
     },
     {
       "experiment_id": "prompt-injection",
+      "cohort_id": "2026-08-20-sonnet-5-n15",
+      "path": "experiments/prompt-injection/2026-08-20-sonnet-5-n15.json",
+      "harness_sha": "b5ac6e684f8d6521b727bbfe68c670df3c897540",
+      "github_run_id": 32326022511
+    },
+    {
+      "experiment_id": "prompt-injection",
       "cohort_id": "sonnet-5-n15",
       "path": "experiments/prompt-injection/sonnet-5-n15.json",
       "harness_sha": "14436a951632111d293bd681fab237d1a12be21e",
@@ -53,10 +95,24 @@
     },
     {
       "experiment_id": "tool-persuasion",
+      "cohort_id": "2026-08-20-sonnet-5-n20",
+      "path": "experiments/tool-persuasion/2026-08-20-sonnet-5-n20.json",
+      "harness_sha": "b5ac6e684f8d6521b727bbfe68c670df3c897540",
+      "github_run_id": 32331535215
+    },
+    {
+      "experiment_id": "tool-persuasion",
       "cohort_id": "sonnet-5-n20",
       "path": "experiments/tool-persuasion/sonnet-5-n20.json",
       "harness_sha": "14436a951632111d293bd681fab237d1a12be21e",
       "github_run_id": 32150715853
+    },
+    {
+      "experiment_id": "trusted-isolation",
+      "cohort_id": "2026-08-20-sonnet-5-n10",
+      "path": "experiments/trusted-isolation/2026-08-20-sonnet-5-n10.json",
+      "harness_sha": "b5ac6e684f8d6521b727bbfe68c670df3c897540",
+      "github_run_id": 32333770488
     },
     {
       "experiment_id": "trusted-isolation",
